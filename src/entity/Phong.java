@@ -7,14 +7,28 @@ public class Phong {
 	private String tenPhong;
 	private LoaiPhong loaiPhong;
 	private Integer soGiuong;
-	private Double hesoGiatheoGiuong;
-	public Phong(String maPhong, String tenPhong, LoaiPhong loaiPhong, Integer soGiuong, Double hesoGiatheoGiuong) {
-		super();
+	private Boolean kieuThue;
+	private Double giaPhongtheoGiuong;
+	private String trangThai;
+	public Phong(String maPhong, String tenPhong, LoaiPhong loaiPhong, Integer soGiuong, Boolean kieuThue, String trangThai) {
 		this.maPhong = maPhong;
 		this.tenPhong = tenPhong;
 		this.loaiPhong = loaiPhong;
 		this.soGiuong = soGiuong;
-		this.hesoGiatheoGiuong = hesoGiatheoGiuong;
+		this.kieuThue= kieuThue;
+		this.trangThai=trangThai;
+		setgiaPhongtheoGiuong();
+	}
+	private void setgiaPhongtheoGiuong() {
+		// TODO Auto-generated method stub
+		if(this.kieuThue) {//true là thuê ngày
+			this.giaPhongtheoGiuong=this.soGiuong * this.loaiPhong.getGiaPhongtheongay();
+		}else {
+			this.giaPhongtheoGiuong=this.soGiuong * this.loaiPhong.getGiaPhongtheogio();
+		}
+	}
+	public double getgiaPhongtheoGiuong() {
+		return giaPhongtheoGiuong;
 	}
 	public Phong(String maPhong) {
 		super();
@@ -44,12 +58,6 @@ public class Phong {
 	public void setSoGiuong(Integer soGiuong) {
 		this.soGiuong = soGiuong;
 	}
-	public Double getHesoGiatheoGiuong() {
-		return hesoGiatheoGiuong;
-	}
-	public void setHesoGiatheoGiuong(Double hesoGiatheoGiuong) {
-		this.hesoGiatheoGiuong = hesoGiatheoGiuong;
-	}
 	@Override
 	public int hashCode() {
 		return Objects.hash(maPhong);
@@ -64,6 +72,12 @@ public class Phong {
 			return false;
 		Phong other = (Phong) obj;
 		return Objects.equals(maPhong, other.maPhong);
+	}
+	public String getTrangThai() {
+		return trangThai;
+	}
+	public void setTrangThai(String trangThai) {
+		this.trangThai = trangThai;
 	}
 	
 }
