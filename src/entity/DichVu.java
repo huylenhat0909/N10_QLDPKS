@@ -7,17 +7,15 @@ public class DichVu {
 	private String tenDichVu;
 	private String moTa;
 	private Double giaTien;
-	private Integer soLuong;
 	private Boolean trangThai;
 	private LoaiDichVu loaiDV;
-	public DichVu(String maDichVu, String tenDichVu, String moTa, Double giaTien, Integer soLuong, Boolean trangThai,
+	public DichVu(String maDichVu, String tenDichVu, String moTa, Double giaTien,Boolean trangThai,
 			LoaiDichVu loaiDV) {
 		super();
 		this.maDichVu = maDichVu;
 		this.tenDichVu = tenDichVu;
 		this.moTa = moTa;
 		this.giaTien = giaTien;
-		this.soLuong = soLuong;
 		this.trangThai = trangThai;
 		this.loaiDV = loaiDV;
 	}
@@ -48,12 +46,7 @@ public class DichVu {
 	public void setGiaTien(Double giaTien) {
 		this.giaTien = giaTien;
 	}
-	public Integer getSoLuong() {
-		return soLuong;
-	}
-	public void setSoLuong(Integer soLuong) {
-		this.soLuong = soLuong;
-	}
+	
 	public Boolean getTrangThai() {
 		return trangThai;
 	}
