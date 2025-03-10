@@ -124,3 +124,8 @@ CREATE TABLE ChiTietHoaDon (
     FOREIGN KEY (cTDichVu) REFERENCES ChiTietDichVu(maCTDV),
     FOREIGN KEY (phong) REFERENCES Phong(maPhong)
 );
+
+--Them thuoc tinh mat khau cho bang tai khoan
+ALTER TABLE TaiKhoan
+ADD matkhau VARCHAR(15);
+
