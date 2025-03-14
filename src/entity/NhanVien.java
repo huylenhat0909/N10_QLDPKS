@@ -1,18 +1,18 @@
 package entity;
 
-import java.time.LocalDate;
+import java.sql.Date;
+
 import java.util.Objects;
 
 public class NhanVien {
 	private String maNV;
 	private String tenNV;
 	private String soCCCD;
-	private LocalDate ngaySinh;
+	private Date ngaySinh;
 	private Boolean gioiTinh;
 	private String soDT;
 	private String email;
 	private String chucVu;
-	private Boolean tinhTrangCV;
 	public NhanVien() {
 		
 	}
@@ -25,10 +25,9 @@ public class NhanVien {
 		this.soDT = "";
 		this.email = "";
 		this.chucVu = "";
-		this.tinhTrangCV = false;
 	}
-	public NhanVien(String maNV, String tenNV, String soCCCD, LocalDate ngaySinh, Boolean gioiTinh, String soDT,
-			String email, String chucVu, Boolean tinhTrangCV) {
+	public NhanVien(String maNV, String tenNV, String soCCCD, Date ngaySinh, Boolean gioiTinh, String soDT,
+			String email, String chucVu) {
 		this.maNV = maNV;
 		this.tenNV = tenNV;
 		this.soCCCD = soCCCD;
@@ -36,9 +35,7 @@ public class NhanVien {
 		this.gioiTinh = gioiTinh;
 		this.soDT = soDT;
 		this.email = email;
-		this.chucVu = chucVu;
-		this.tinhTrangCV = tinhTrangCV;
-	}
+		this.chucVu = chucVu;}
 	public String getMaNV() {
 		return maNV;
 	}
@@ -57,10 +54,10 @@ public class NhanVien {
 	public void setSoCCCD(String soCCCD) {
 		this.soCCCD = soCCCD;
 	}
-	public LocalDate getNgaySinh() {
+	public Date getNgaySinh() {
 		return ngaySinh;
 	}
-	public void setNgaySinh(LocalDate ngaySinh) {
+	public void setNgaySinh(Date ngaySinh) {
 		this.ngaySinh = ngaySinh;
 	}
 	public Boolean getGioiTinh() {
@@ -87,13 +84,7 @@ public class NhanVien {
 	public void setChucVu(String chucVu) {
 		this.chucVu = chucVu;
 	}
-	public Boolean getTinhTrangCV() {
-		return tinhTrangCV;
-	}
-	public void setTinhTrangCV(Boolean tinhTrangCV) {
-		this.tinhTrangCV = tinhTrangCV;
-	}
-	@Override
+
 	public int hashCode() {
 		return Objects.hash(maNV);
 	}

@@ -10,7 +10,7 @@ CREATE TABLE KhachHang (
     sdt VARCHAR(15) NOT NULL,
     email VARCHAR(100)
 );
-
+ALTER TABLE KhachHang ALTER COLUMN tenKH NVARCHAR(50);
 -- Bảng Nhân Viên
 CREATE TABLE NhanVien (
     maNhanVien VARCHAR(20) PRIMARY KEY,
@@ -22,7 +22,8 @@ CREATE TABLE NhanVien (
     email VARCHAR(100),
     chucVu VARCHAR(50) NOT NULL
 );
-
+ALTER TABLE NhanVien ALTER COLUMN tenNhanVien NVARCHAR(50);
+ALTER TABLE NhanVien ALTER COLUMN chucVu NVARCHAR(50);
 -- Bảng Tài Khoản
 CREATE TABLE TaiKhoan (
     nhanVien VARCHAR(20) UNIQUE NOT NULL,
@@ -39,7 +40,8 @@ CREATE TABLE LoaiPhong (
     giaPhongTheoGio DECIMAL(15,2) NOT NULL,
     giaPhongTheoNgay DECIMAL(15,2) NOT NULL
 );
-
+ALTER TABLE LoaiPhong ALTER COLUMN tenLoaiPhong NVARCHAR(50);
+ALTER TABLE LoaiPhong ALTER COLUMN moTa NVARCHAR(100);
 -- Bảng Phòng
 CREATE TABLE Phong (
     maPhong VARCHAR(20) PRIMARY KEY,
@@ -51,7 +53,7 @@ CREATE TABLE Phong (
     trangThai VARCHAR(50) NOT NULL,
     FOREIGN KEY (loaiPhong) REFERENCES LoaiPhong(maLoaiPhong)
 );
-
+ALTER TABLE Phong ALTER COLUMN tenPhong NVARCHAR(20);
 -- Bảng Khuyến Mãi
 CREATE TABLE KhuyenMai (
     maKM VARCHAR(20) PRIMARY KEY,
@@ -61,7 +63,7 @@ CREATE TABLE KhuyenMai (
     tienApDungKM DECIMAL(15,2),
     phanTramKM FLOAT NOT NULL
 );
-
+ALTER TABLE KhuyenMai ALTER COLUMN moTa NVARCHAR(50);
 -- Bảng Hóa Đơn
 CREATE TABLE HoaDon (
     maHoaDon VARCHAR(20) PRIMARY KEY,
@@ -93,7 +95,7 @@ CREATE TABLE LoaiDichVu (
     maLoaiDV VARCHAR(20) PRIMARY KEY,
     tenDV VARCHAR(100) NOT NULL
 );
-
+ALTER TABLE LoaiDichVu ALTER COLUMN tenDV NVARCHAR(50);
 -- Bảng Dịch Vụ
 CREATE TABLE DichVu (
     maDichVu VARCHAR(20) PRIMARY KEY,
@@ -104,7 +106,7 @@ CREATE TABLE DichVu (
     loaiDV VARCHAR(20) NOT NULL,
     FOREIGN KEY (loaiDV) REFERENCES LoaiDichVu(maLoaiDV)
 );
-
+ALTER TABLE DichVu ALTER COLUMN tenDichVu NVARCHAR(50);
 -- Bảng Chi Tiết Dịch Vụ
 CREATE TABLE ChiTietDichVu (
     maCTDV VARCHAR(20) PRIMARY KEY,
@@ -124,7 +126,7 @@ CREATE TABLE ChiTietHoaDon (
     FOREIGN KEY (cTDichVu) REFERENCES ChiTietDichVu(maCTDV),
     FOREIGN KEY (phong) REFERENCES Phong(maPhong)
 );
-
+ALTER TABLE ChiTietHoaDon ALTER COLUMN trangThai NVARCHAR(50);
 --Them thuoc tinh mat khau cho bang tai khoan
 ALTER TABLE TaiKhoan
 ADD matkhau VARCHAR(15);
