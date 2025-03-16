@@ -20,7 +20,7 @@ public class DaoNhanVien {
 	public DaoNhanVien() {
 		dsnv=new ArrayList<NhanVien>();
 	}
-	public List<NhanVien> getDatabaes(){
+	public List<NhanVien> getDatabase(){
 		try {
 			ConnectDB.getInstance();
 			Connection con = ConnectDB.getConnection();
