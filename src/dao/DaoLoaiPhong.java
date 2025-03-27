@@ -1,6 +1,7 @@
 package dao;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -62,6 +63,24 @@ public class DaoLoaiPhong {
 			e.printStackTrace();
 		}
 		return dslPhong;
+	}
+	public boolean themLoaiPhong(LoaiPhong lphong) {
+		int n =0;
+		try {
+			ConnectDB.getInstance();
+			Connection con= ConnectDB.getConnection();
+			String sql= "INSERT INTO LoaiPhong([maLoaiPhong],[tenLoaiPhong],[soTang],[moTa],[giaPhongTheoGio],[giaPhongTheoNgay]) VALUES(?,?,?,?,?,?)";
+			PreparedStatement statement= con.prepareStatement(sql);
+			statement.setString(1,lphong.getMaLoaiP());
+			statement.setString(2, lphong.getTenLoaiP());
+			statement.setInt(3,lphong.getSoTang());
+			statement.setString(4, lphong.getMoTa());
+			statement.setDouble(5,lphong.getGiaPhongtheogio());
+			statement.setString(6, lphong.getTenLoaiP());
+		}catch(SQLException E) {
+			E.printStackTrace();
+		}
+		return n>0;
 	}
 	
 }
