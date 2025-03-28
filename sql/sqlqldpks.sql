@@ -47,7 +47,6 @@ CREATE TABLE CTPhieuDatPhong (
     maPhong NVARCHAR(50),
     gioDatPhong DATETIME,
     gioTraPhong DATETIME,
-    kieuThue NVARCHAR(50),
     PRIMARY KEY (maPhieuDatPhong, maPhong),
     FOREIGN KEY (maPhieuDatPhong) REFERENCES PhieuDatPhong(maPhieuDatPhong),
     FOREIGN KEY (maPhong) REFERENCES Phong(maPhong)
@@ -117,6 +116,7 @@ CREATE TABLE ChiTietHoaDon (
     ngayLapHoaDon DATETIME,
     trangThai BIT,
     phuongThucTT NVARCHAR(50),
+	soLuongDV INT,
     PRIMARY KEY (maHoaDon, maDichVu, maPhong),
     FOREIGN KEY (maHoaDon) REFERENCES HoaDon(maHoaDon),
     FOREIGN KEY (maDichVu) REFERENCES DichVu(maDichVu),
