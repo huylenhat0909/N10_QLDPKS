@@ -4,41 +4,43 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class ChiTietHoaDon {
-	private ChiTietDichVu ctDV;
 	private Phong phong;
 	private LocalDateTime ngayLapHD;
 	private Boolean trangThai;
 	private String phuongThuc;
-	private String maCTHD;
+	private Integer soLuong;
+	private HoaDon hoaDon;
+	private DichVu dicvu;
 	
-	public ChiTietHoaDon(ChiTietDichVu ctDV, Phong phong, LocalDateTime ngayLapHD, Boolean trangThai, String phuongThuc,
-			String maCTHD) {
+	public ChiTietHoaDon(HoaDon hoaDon, Phong phong, LocalDateTime ngayLapHD, Boolean trangThai, String phuongThuc,
+			Integer soluong, DichVu dv) {
 		super();
-		this.ctDV = ctDV;
+		this.hoaDon=hoaDon;
 		this.phong = phong;
 		this.ngayLapHD = ngayLapHD;
 		this.trangThai = trangThai;
 		this.phuongThuc = phuongThuc;
-		this.maCTHD = maCTHD;
+		this.soLuong = soluong;
+		this.dicvu=dv;
 	}
 	
 	public ChiTietHoaDon() {
 		super();
 	}
 
-	public String getMaCTHD() {
-		return maCTHD;
+	public Integer getsoLuong() {
+		return soLuong;
 	}
 
-	public void setMaCTHD(String maCTHD) {
-		this.maCTHD = maCTHD;
+	public void setMaCTHD(Integer sl) {
+		this.soLuong = sl;
 	}
 
-	public ChiTietDichVu getCtDV() {
-		return ctDV;
+	public HoaDon getHD() {
+		return hoaDon;
 	}
-	public void setCtDV(ChiTietDichVu ctDV) {
-		this.ctDV = ctDV;
+	public void setCtDV(HoaDon hd) {
+		this.hoaDon = hd;
 	}
 	public Phong getPhong() {
 		return phong;
@@ -65,9 +67,17 @@ public class ChiTietHoaDon {
 		this.phuongThuc = phuongThuc;
 	}
 
+	public DichVu getDicvu() {
+		return dicvu;
+	}
+
+	public void setDicvu(DichVu dicvu) {
+		this.dicvu = dicvu;
+	}
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(maCTHD);
+		return Objects.hash(dicvu, hoaDon, phong);
 	}
 
 	@Override
@@ -79,7 +89,10 @@ public class ChiTietHoaDon {
 		if (getClass() != obj.getClass())
 			return false;
 		ChiTietHoaDon other = (ChiTietHoaDon) obj;
-		return Objects.equals(maCTHD, other.maCTHD);
+		return Objects.equals(dicvu, other.dicvu) && Objects.equals(hoaDon, other.hoaDon)
+				&& Objects.equals(phong, other.phong);
 	}
+
+	
 	
 }

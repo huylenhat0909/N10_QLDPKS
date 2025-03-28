@@ -6,14 +6,12 @@ public class HoaDon {
 	private String maHD;
 	private NhanVien nhanvien;
 	private KhuyenMai khuyenmai;
-	private ChiTietHoaDon cthd;
 	private KhachHang khachHang;
-	public HoaDon(String maHD, NhanVien nhanvien, KhuyenMai khuyenmai, ChiTietHoaDon cthd, KhachHang khachHang) {
+	public HoaDon(String maHD, NhanVien nhanvien, KhuyenMai khuyenmai, KhachHang khachHang) {
 		super();
 		this.maHD = maHD;
 		this.nhanvien = nhanvien;
 		this.khuyenmai = khuyenmai;
-		this.cthd = cthd;
 		this.khachHang = khachHang;
 	}
 	public HoaDon() {
@@ -36,12 +34,6 @@ public class HoaDon {
 	}
 	public void setKhuyenmai(KhuyenMai khuyenmai) {
 		this.khuyenmai = khuyenmai;
-	}
-	public ChiTietHoaDon getCthd() {
-		return cthd;
-	}
-	public void setCthd(ChiTietHoaDon cthd) {
-		this.cthd = cthd;
 	}
 	public KhachHang getKhachHang() {
 		return khachHang;
