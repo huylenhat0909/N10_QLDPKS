@@ -16,6 +16,7 @@ import entity.NhanVien;
 public class DaoNhanVien {
 	private ArrayList<NhanVien> dsnv;
 	private NhanVien nv;
+	private Connection con;
 
 	public DaoNhanVien() {
 		dsnv=new ArrayList<NhanVien>();
@@ -69,6 +70,34 @@ public class DaoNhanVien {
 			e.printStackTrace();
 		}
 		return dsnv;
+	}
+	public NhanVien getNhanVienTheoMa(String maNV){
+		try {
+			ConnectDB.getInstance().connect();
+			con = ConnectDB.getConnection();
+			if (con == null) {
+                System.out.println("Database connection failed!");
+                return null;
+            }
+			String sql = "Select * from NhanVien where maNhanVien like N'%"+maNV+"%'";
+			Statement statement = con.createStatement();
+			ResultSet rs = statement.executeQuery(sql);
+			while(rs.next()) {
+				String manv= rs.getString(1);
+				String tennv= rs.getString(2);
+				String soCCCD= rs.getString(3);
+				Date ngaySinh= rs.getDate(4);
+				Boolean gioiTinh= rs.getBoolean(5);
+				String sdt= rs.getString(6);
+				String email= rs.getString(7);
+				String chucVu= rs.getString(8);
+				nv= new NhanVien(manv, tennv, soCCCD, ngaySinh, gioiTinh, sdt, email, chucVu);
+			}
+		} catch (SQLException e) {
+			//TODO: handle exception
+			e.printStackTrace();
+		}
+		return nv;
 	}
 	public boolean themNhanVien(NhanVien nv) {
 		int n=0;

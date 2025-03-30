@@ -3,19 +3,25 @@ package gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.HeadlessException;
+import java.awt.Image;
 
 import javax.swing.AbstractButton;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import connectDB.ConnectDB;
+import dao.DaoTaiKhoan;
+import entity.TaiKhoan;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,42 +37,74 @@ public class guiDangNhap extends JFrame implements MouseListener, ActionListener
 	private JButton login;
 	private JTextField username;
 	private JPasswordField password;
+	private DaoTaiKhoan daotk;
+	private TaiKhoan tk;
+	class BackgroundPanel extends JPanel {
+	    private Image backgroundImage;
+
+	    public BackgroundPanel(String filePath) {
+	        backgroundImage = new ImageIcon(filePath).getImage();
+	    }
+
+	    @Override
+	    protected void paintComponent(Graphics g) {
+	        super.paintComponent(g);
+	        g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+	    }
+	}
 	public guiDangNhap() {
 		setTitle("SkyHotel Manager Login");
         setSize(600, 300);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLayout(null);
-        getContentPane().setBackground(Color.DARK_GRAY);
+
+        // Sử dụng JPanel vẽ nền ảnh
+        BackgroundPanel background = new BackgroundPanel("icon/hinhnen.jpg");
+        setContentPane(background);
+        background.setLayout(null);
+
         // Tiêu đề
         JLabel title = new JLabel("LOGIN TO SKYHOTEL MANAGER");
-        title.setForeground(Color.WHITE);
+        title.setForeground(Color.RED);
         title.setFont(new Font("Arial", Font.BOLD, 18));
         title.setBounds(150, 20, 300, 30);
-        add(title);
+        background.add(title);
+
+        JLabel usernameLabel = new JLabel("Username:");
+        usernameLabel.setForeground(Color.RED);
+        usernameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        usernameLabel.setBounds(80, 70, 100, 30);
+        background.add(usernameLabel);
 
         // Username
         username = new JTextField();
-        username.setBounds(80, 80, 160, 30);
-        add(username);
+        username.setBounds(80, 100, 160, 30);
+        background.add(username);
+
+        // Label Password
+        JLabel passwordLabel = new JLabel("Password:");
+        passwordLabel.setForeground(Color.RED);
+        passwordLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        passwordLabel.setBounds(260, 70, 100, 30);
+        background.add(passwordLabel);
 
         // Password
         password = new JPasswordField();
         password.setEchoChar('*');
-        password.setBounds(260, 80, 160, 30);
-        add(password);
+        password.setBounds(260, 100, 160, 30);
+        background.add(password);
 
-     //  // Nút hiện/ẩn password
+        // Nút hiện/ẩn password
         JButton showButton = new JButton("Show");
-        showButton.setBounds(430, 80, 100, 30);
+        showButton.setBounds(430, 100, 100, 30);
         showButton.setFocusPainted(false);
-        add(showButton);
+        background.add(showButton);
 
         showButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 isPasswordVisible = !isPasswordVisible;
                 if (isPasswordVisible) {
-                    password.setEchoChar((char)0);
+                    password.setEchoChar((char) 0);
                     showButton.setText("Hide");
                 } else {
                     password.setEchoChar('*');
@@ -74,13 +112,15 @@ public class guiDangNhap extends JFrame implements MouseListener, ActionListener
                 }
             }
         });
+
         // Nút login
         login = new JButton("LOGIN");
-        login.setBounds(320, 120, 100, 30);
+        login.setBounds(320, 140, 100, 30);
         login.setBackground(new Color(0, 150, 255));
-        login.setForeground(Color.WHITE);
+        login.setForeground(Color.RED);
         login.setFocusable(false);
-        ((AbstractButton) login).setBorderPainted(false);
+        login.setBorderPainted(false);
+        background.add(login);
 
         // Sự kiện hover + click
         login.addMouseListener(new MouseAdapter() {
@@ -104,7 +144,6 @@ public class guiDangNhap extends JFrame implements MouseListener, ActionListener
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                // Nếu chuột vẫn trong nút sau khi nhả ra
                 if (login.getBounds().contains(e.getPoint())) {
                     login.setBackground(Color.ORANGE);
                 } else {
@@ -112,7 +151,6 @@ public class guiDangNhap extends JFrame implements MouseListener, ActionListener
                 }
             }
         });
-        add(login);
         login.addActionListener(this);
 	}
 	public static void main(String[] args) {
@@ -162,30 +200,28 @@ public class guiDangNhap extends JFrame implements MouseListener, ActionListener
 		if(name.equals("") | pass.equals("")) {
 			JOptionPane.showMessageDialog(null,"Không được bỏ trống!!!");
 		}
-		try {
-			ConnectDB.getInstance();
-			Connection con = ConnectDB.getConnection();
-			String sql = "select * from TaiKhoan where taikhoan='"+name+"' and matkhau='"+pass+"'";
-			Statement statement = con.createStatement();
-			ResultSet rs = statement.executeQuery(sql);
-			while(rs.next()) {
-				dangnhap.setVisible(false);
-				trangchu.setVisible(true);
-				trangchu.setLocationRelativeTo(null);
-				dispose();
-				setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-				JOptionPane.showMessageDialog(this, "Đăng nhập thành công!");
-				return;
-			}
-		} catch (HeadlessException e) {
-			//TODO: handle exception
-			e.printStackTrace();
-		}catch (SQLException e) {
-			e.printStackTrace();
+		daotk=new DaoTaiKhoan();
+		tk=daotk.getTaiKhoantheoTen(name);
+		if(tk==null) {
+			JOptionPane.showMessageDialog(null,"Tên đăng nhập không tồn tại!!!");
+			username.requestFocus();
+			username.selectAll();
+			return;
 		}
-		JOptionPane.showMessageDialog(this, "Sai tên đăng nhập hoặc mật khẩu!");
-		password.requestFocus();
-		password.selectAll();
+		if(tk.getMatKhau().equals(pass)) {
+			dangnhap.setVisible(false);
+			trangchu.setVisible(true);
+			trangchu.setLocationRelativeTo(null);
+			dispose();
+			setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+			JOptionPane.showMessageDialog(this, "Đăng nhập thành công!");
+			return;
+		}else {
+			JOptionPane.showMessageDialog(this, "Sai mật khẩu!");
+			password.requestFocus();
+			password.selectAll();
+		}
+		
 	}
 	
 }
