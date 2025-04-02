@@ -151,6 +151,28 @@ public class guiDangNhap extends JFrame implements MouseListener, ActionListener
                 }
             }
         });
+     // Nút Exit
+        JButton exitButton = new JButton("EXIT");
+        exitButton.setBounds(430, 140, 100, 30);
+        exitButton.setBackground(new Color(200, 0, 0));
+        exitButton.setForeground(Color.WHITE);
+        exitButton.setFocusable(false);
+        exitButton.setBorderPainted(false);
+        background.add(exitButton);
+
+        // Sự kiện khi nhấn nút EXIT
+        exitButton.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                this, 
+                "Bạn có chắc chắn muốn đóng ứng dụng?", 
+                "Xác nhận thoát", 
+                JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                System.exit(0); // Đóng ứng dụng
+            }
+        });
         login.addActionListener(this);
 	}
 	public static void main(String[] args) {
@@ -196,7 +218,6 @@ public class guiDangNhap extends JFrame implements MouseListener, ActionListener
 		String name=username.getText();
 		String pass= password.getText();
 		guiDangNhap dangnhap= new guiDangNhap();
-		gui_TrangChu trangchu= new gui_TrangChu();
 		if(name.equals("") | pass.equals("")) {
 			JOptionPane.showMessageDialog(null,"Không được bỏ trống!!!");
 		}
@@ -210,8 +231,8 @@ public class guiDangNhap extends JFrame implements MouseListener, ActionListener
 		}
 		if(tk.getMatKhau().equals(pass)) {
 			dangnhap.setVisible(false);
-			trangchu.setVisible(true);
-			trangchu.setLocationRelativeTo(null);
+			new gui_TrangChu(tk.getNhanVien()).setVisible(true);
+			new gui_TrangChu(tk.getNhanVien()).setLocationRelativeTo(null);
 			dispose();
 			setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 			JOptionPane.showMessageDialog(this, "Đăng nhập thành công!");
