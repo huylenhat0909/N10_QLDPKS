@@ -75,15 +75,15 @@ public class gui_TrangChu extends JFrame {
         
      // Thêm menu không có submenu
         addMenuWithoutSubmenu(menuPanel, "Sơ đồ phòng Khách sạn","icon/hotel.png");
-        addMenuWithoutSubmenu(menuPanel,"Phiếu đặt phòng","icon/hotel.png");
+        addMenuWithoutSubmenu(menuPanel,"Phiếu đặt phòng","icon/booking-online.png");
         // Thêm menu chính với submenu
-        addMenuItem(menuPanel, "Phòng", new String[]{"Danh sách loại phòng", "Danh sách phòng"},new String[] {"icon/money.png"});
-        addMenuItem(menuPanel, "Dịch vụ", new String[]{"Danh sách loại dịch vụ", "Danh sách dịch vụ"},new String[] {"icon/money.png"});
-        addMenuWithoutSubmenu(menuPanel, "Khuyến mãi","icon/money.png");
+        addMenuItem(menuPanel, "Phòng", new String[]{"Danh sách loại phòng", "Danh sách phòng"},new String[] {"icon/bed.png"});
+        addMenuItem(menuPanel, "Dịch vụ", new String[]{"Danh sách loại dịch vụ", "Danh sách dịch vụ"},new String[] {"icon/luggage-cart.png"});
+        addMenuWithoutSubmenu(menuPanel, "Khuyến mãi","icon/customer-loyalty.png");
         addMenuWithoutSubmenu(menuPanel, "Khách hàng","icon/office-man (1).png");
-        addMenuItem(menuPanel, "Nhân viên", new String[]{"Danh sách nhân viên", "Tài khoản nhân viên"},new String[] {"icon/office-man.png"});
-        addMenuItem(menuPanel, "Hóa đơn", new String[]{"Danh sách hóa đơn","Chi tiết hóa đơn"},new String[] {"icon/money.png"});
-        addMenuItem(menuPanel, "Thống kê", new String[]{"Doanh thu", "Số lượng khách đã đặt","Số lượng phòng đã được đặt"},new String[] {"icon/money.png"});
+        addMenuItem(menuPanel, "Nhân viên", new String[]{"Danh sách nhân viên", "Tài khoản nhân viên"},new String[] {"icon/office-man.png","icon/add-user.png"});
+        addMenuItem(menuPanel, "Hóa đơn", new String[]{"Danh sách hóa đơn","Chi tiết hóa đơn"},new String[] {"icon/money.png","icon/detail.png"});
+        addMenuItem(menuPanel, "Thống kê", new String[]{"Doanh thu", "Số lượng khách đã đặt","Số lượng phòng đã được đặt"},new String[] {"icon/dashboard.png"});
 
         // Thêm menuPanel vào JFrame
         JScrollPane scrollPane = new JScrollPane(menuPanel);
@@ -149,7 +149,8 @@ public class gui_TrangChu extends JFrame {
         subMenuPanel.setLayout(new BoxLayout(subMenuPanel, BoxLayout.Y_AXIS));
         subMenuPanel.setBackground(Color.GRAY);
         subMenuPanel.setVisible(false);
-
+        int i=0;
+        int len=paths_icon.length;
         for (String item : subItems) {
             JButton subButton = new JButton("   " + item);
             subButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -158,7 +159,10 @@ public class gui_TrangChu extends JFrame {
             subButton.setHorizontalAlignment(SwingConstants.LEFT); // Căn chữ sang trái
             subButton.setMargin(new Insets(5, 30, 5, 5)); // Tạo khoảng cách giữa icon và chữ
             // Load và resize icon
-            ImageIcon icon_subs = getResizedIcon(paths_icon[0], 24, 24); // Resize icon về 24x24
+            ImageIcon icon_subs = getResizedIcon(paths_icon[i], 24, 24); // Resize icon về 24x24
+            if(len-i>1) {
+            	i++;
+            }
             subButton.setIcon(icon_subs);
             subMenuPanel.add(subButton);
             subButton.setBackground(Color.lightGray);
