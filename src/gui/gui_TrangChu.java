@@ -218,5 +218,10 @@ public class gui_TrangChu extends JFrame {
         }
         currentlyOpenSubMenu = null;
     }
-    
+    public static void main(String[] args) {
+    	NhanVien nv=new NhanVien();
+        SwingUtilities.invokeLater(() -> {
+            new gui_TrangChu(nv).setVisible(true);
+        });
+    }
 }

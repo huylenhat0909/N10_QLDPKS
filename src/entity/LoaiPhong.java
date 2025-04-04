@@ -5,7 +5,6 @@ import java.util.Objects;
 public class LoaiPhong {
 	private String maLoaiP;
 	private String tenLoaiP;
-	private int soTang;
 	private String moTa;
 	private Double giaPhongtheogio;
 	private Double giaPhongtheongay;
@@ -14,7 +13,6 @@ public class LoaiPhong {
 		super();
 		this.maLoaiP = maLoaiP;
 		this.tenLoaiP = tenLoaiP;
-		this.soTang = soTang;
 		this.moTa = moTa;
 		this.giaPhongtheogio = giaPhongtheogio;
 		this.giaPhongtheongay = giaPhongtheongay;
@@ -32,12 +30,6 @@ public class LoaiPhong {
 	}
 	public void setTenLoaiP(String tenLoaiP) {
 		this.tenLoaiP = tenLoaiP;
-	}
-	public int getSoTang() {
-		return soTang;
-	}
-	public void setSoTang(int soTang) {
-		this.soTang = soTang;
 	}
 	public String getMoTa() {
 		return moTa;

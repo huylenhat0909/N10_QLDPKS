@@ -73,10 +73,9 @@ public class DaoLoaiPhong {
 			PreparedStatement statement= con.prepareStatement(sql);
 			statement.setString(1,lphong.getMaLoaiP());
 			statement.setString(2, lphong.getTenLoaiP());
-			statement.setInt(3,lphong.getSoTang());
-			statement.setString(4, lphong.getMoTa());
-			statement.setDouble(5,lphong.getGiaPhongtheogio());
-			statement.setString(6, lphong.getTenLoaiP());
+			statement.setString(3, lphong.getMoTa());
+			statement.setDouble(4,lphong.getGiaPhongtheogio());
+			statement.setString(5, lphong.getTenLoaiP());
 		}catch(SQLException E) {
 			E.printStackTrace();
 		}

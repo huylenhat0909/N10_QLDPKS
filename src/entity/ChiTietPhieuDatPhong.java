@@ -8,13 +8,17 @@ public class ChiTietPhieuDatPhong {
 	private Phong phong;
 	private LocalDateTime gioDatPhong;
 	private LocalDateTime gioTraPhong;
+	private Boolean kieuThue;
+	private Double giaPhongtheoKieuThue;
 	public ChiTietPhieuDatPhong(PhieuDatPhong phietDP, Phong phong, LocalDateTime gioDatPhong,
-			LocalDateTime gioTraPhong) {
+			LocalDateTime gioTraPhong,Boolean kieuThue) {
 		super();
 		this.phietDP = phietDP;
 		this.phong = phong;
 		this.gioDatPhong = gioDatPhong;
 		this.gioTraPhong = gioTraPhong;
+		this.kieuThue=kieuThue;
+		this.setGiaPhongtheoKieuThue();
 	}
 	public ChiTietPhieuDatPhong() {
 		super();
@@ -57,6 +61,22 @@ public class ChiTietPhieuDatPhong {
 			return false;
 		ChiTietPhieuDatPhong other = (ChiTietPhieuDatPhong) obj;
 		return Objects.equals(phietDP, other.phietDP) && Objects.equals(phong, other.phong);
+	}
+	public Boolean getKieuThue() {
+		return kieuThue;
+	}
+	public void setKieuThue(Boolean kieuThue) {
+		this.kieuThue = kieuThue;
+	}
+	public Double getGiaPhongtheoKieuThue() {
+		return giaPhongtheoKieuThue;
+	}
+	public void setGiaPhongtheoKieuThue() {
+		if(kieuThue) {
+			this.giaPhongtheoKieuThue=phong.getGiaPhong()*phong.getLoaiPhong().getGiaPhongtheongay();
+		}else {
+			this.giaPhongtheoKieuThue=phong.getGiaPhong()*phong.getLoaiPhong().getGiaPhongtheogio();
+		}
 	}
 	
 	

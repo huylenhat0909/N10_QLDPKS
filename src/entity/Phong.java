@@ -7,29 +7,19 @@ public class Phong {
 	private String tenPhong;
 	private LoaiPhong loaiPhong;
 	private Integer soGiuong;
-	private Boolean kieuThue;
-	private Double giaPhongtheoGiuong;
+	private Double giaPhong;
 	private String trangThai;
-	public Phong(String maPhong, String tenPhong, LoaiPhong loaiPhong, Integer soGiuong, Boolean kieuThue, String trangThai) {
+	private Integer tang;
+	public Phong(String maPhong, String tenPhong, LoaiPhong loaiPhong, Integer soGiuong, Double giaPhong, String trangThai,Integer tang) {
 		this.maPhong = maPhong;
 		this.tenPhong = tenPhong;
 		this.loaiPhong = loaiPhong;
 		this.soGiuong = soGiuong;
-		this.kieuThue= kieuThue;
+		this.setGiaPhong(giaPhong);
 		this.trangThai=trangThai;
-		setgiaPhongtheoGiuong();
+		this.setTang(tang);
 	}
-	private void setgiaPhongtheoGiuong() {
-		// TODO Auto-generated method stub
-		if(this.kieuThue) {//true là thuê ngày
-			this.giaPhongtheoGiuong=this.soGiuong * this.loaiPhong.getGiaPhongtheongay();
-		}else {
-			this.giaPhongtheoGiuong=this.soGiuong * this.loaiPhong.getGiaPhongtheogio();
-		}
-	}
-	public double getgiaPhongtheoGiuong() {
-		return giaPhongtheoGiuong;
-	}
+	
 	public Phong(String maPhong) {
 		super();
 		this.maPhong = maPhong;
@@ -78,6 +68,20 @@ public class Phong {
 	}
 	public void setTrangThai(String trangThai) {
 		this.trangThai = trangThai;
+	}
+	public Double getGiaPhong() {
+		return giaPhong;
+	}
+	public void setGiaPhong(Double giaPhong) {
+		this.giaPhong = giaPhong;
+	}
+
+	public Integer getTang() {
+		return tang;
+	}
+
+	public void setTang(Integer tang) {
+		this.tang = tang;
 	}
 	
 }
