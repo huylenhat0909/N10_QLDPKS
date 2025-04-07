@@ -23,7 +23,7 @@ public class gui_TrangChu extends JFrame {
     public gui_TrangChu(NhanVien nv) {
     	thongtin_nv= nv;
         setTitle("SkyHotel Management");
-        setSize(1300, 800);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
@@ -92,7 +92,7 @@ public class gui_TrangChu extends JFrame {
 
         // Main panel
         mainPanel = new JPanel();
-        mainPanel.setBackground(Color.WHITE);
+        mainPanel.setLayout(new BorderLayout());
         add(mainPanel, BorderLayout.CENTER);
         
     }
