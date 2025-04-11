@@ -2,6 +2,11 @@ package gui;
 
 import javax.swing.*;
 import com.toedter.calendar.JDateChooser;
+
+import dao.DaoPhong;
+import entity.NhanVien;
+import entity.Phong;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
@@ -10,7 +15,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class gui_SDKS extends JPanel {
     private static final int TANG = 5;           // Số tầng
@@ -24,11 +31,17 @@ public class gui_SDKS extends JPanel {
 
     // Label để hiển thị đếm số phòng theo trạng thái
     private JLabel countLabel;
+	private DaoPhong daophong;
+	private List<Phong> dsphong;
+	private NhanVien nv;
 
-    public gui_SDKS() {
+    public gui_SDKS(NhanVien ttnv) {
+    	nv=ttnv;
         // Sử dụng BorderLayout để giãn full không gian
         setLayout(new BorderLayout());
+        
 
+        
         // ========== PHẦN TRÊN (NORTH) ==========
         JPanel topPanel = new JPanel(new BorderLayout());
 
@@ -72,26 +85,44 @@ public class gui_SDKS extends JPanel {
         // ========== PHẦN CHÍNH (CENTER) ==========
         // Tạo lưới với số dòng là TANG và số cột là (PHONG_MOI_TANG + 1) 
         // (cột đầu tiên hiển thị tầng, các cột còn lại là các phòng)
+        daophong= new DaoPhong();
+        dsphong=daophong.getDatabase();
         JPanel gridPanel = new JPanel(new GridLayout(TANG, PHONG_MOI_TANG + 1, 5, 5));
         phongButtons = new JButton[TANG][PHONG_MOI_TANG];
 
         for (int i = 0; i < TANG; i++) {
-            // Cột đầu tiên: hiển thị tầng
-            JLabel tangLabel = new JLabel("Tầng " + (i + 1), SwingConstants.CENTER);
+            int tangHienTai = i + 1;
+            JLabel tangLabel = new JLabel("Tầng " + tangHienTai, SwingConstants.CENTER);
             tangLabel.setFont(font);
             tangLabel.setOpaque(true);
             tangLabel.setBackground(Color.LIGHT_GRAY);
             tangLabel.setPreferredSize(new Dimension(50, 100));
             gridPanel.add(tangLabel);
 
-            // Các cột tiếp theo: các phòng
+            // Lọc danh sách phòng thuộc tầng hiện tại
+            List<Phong> phongTangHienTai = dsphong.stream()
+                .filter(p -> p.getTang() == tangHienTai)
+                .collect(Collectors.toList());
+
             for (int j = 0; j < PHONG_MOI_TANG; j++) {
-                // Hiển thị tên phòng theo định dạng "Phòng X"
-                String roomName = "Phòng " + (j + 1);// LẤY THÔNG TIN TÊN PHÒNG Ở ĐÂY
-                JButton btn = new JButton(roomName);
+                JButton btn;
+
+                if (j < phongTangHienTai.size()) {
+                    Phong phong = phongTangHienTai.get(j);
+                    btn = new JButton(phong.getTenPhong());
+                    btn.putClientProperty("maPhong", phong.getMaPhong());
+                    btn.putClientProperty("tenPhong", phong.getTenPhong());
+                    btn.putClientProperty("tang", phong.getTang());
+                    btn.putClientProperty("trangThai", phong.getTrangThai());
+                    // Thêm gì cần nữa từ phong
+                } else {
+                    // Nếu không có phòng đủ số lượng, tạo nút trống hoặc disabled
+                    btn = new JButton("Trống");
+                    btn.setEnabled(false); // hoặc vẫn bật nếu muốn
+                }
+
                 btn.setFont(font);
-                btn.putClientProperty("tang", i + 1);
-                btn.putClientProperty("phong", j + 1);
+                btn.putClientProperty("tang", tangHienTai);
                 btn.addActionListener(new PhongButtonListener());
                 phongButtons[i][j] = btn;
                 btn.setPreferredSize(new Dimension(150, 100));
@@ -169,40 +200,27 @@ public class gui_SDKS extends JPanel {
      * Lắng nghe sự kiện click vào phòng, cho phép đổi trạng thái.
      */
     private class PhongButtonListener implements ActionListener {
-        @Override
+        private Phong phong;
+
+		@Override
         public void actionPerformed(ActionEvent e) {
             JButton clickedButton = (JButton) e.getSource();
-            int tang = (int) clickedButton.getClientProperty("tang");
-            int phong = (int) clickedButton.getClientProperty("phong");
-            String trangThaiHienTai = (String) clickedButton.getClientProperty("trangThai");
+            String maPhong = (String) clickedButton.getClientProperty("maPhong");
+            String tenPhong = (String) clickedButton.getClientProperty("tenPhong");
+            phong=daophong.getPhongtheoTen(tenPhong);
 
-            // Tạo panel cho hộp thoại
-            JPanel panel = new JPanel(new GridLayout(3, 1));
-            panel.add(new JLabel("Tầng: " + tang));
-            panel.add(new JLabel("Phòng: " + phong));
-            JComboBox<String> trangThaiBox = new JComboBox<>(trangThai);
-            trangThaiBox.setSelectedItem(trangThaiHienTai);
-            panel.add(trangThaiBox);
-
-            int result = JOptionPane.showConfirmDialog(null, panel, "Thông tin phòng", JOptionPane.OK_CANCEL_OPTION);
-            if (result == JOptionPane.OK_OPTION) {
-                String trangThaiMoi = (String) trangThaiBox.getSelectedItem();
-                Date date = dateChooser.getDate();
-                if (date == null) return;
-                LocalDate selectedDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                String key = selectedDate + "-T" + tang + "P" + phong;
-
-                // Cập nhật trạng thái
-                phongTheoNgay.put(key, trangThaiMoi);
-                clickedButton.setBackground(getColorByState(trangThaiMoi));
-                clickedButton.putClientProperty("trangThai", trangThaiMoi);
-
-                // Cập nhật label thống kê
-                capNhatCountLabel();
+            if ("Đang sử dụng".equals(phong.getTrangThai())) {
+                ThanhToanDialog dialog = new ThanhToanDialog(null,maPhong, tenPhong, "Nguyễn Văn A", "0912345678");
+                dialog.setVisible(true);
             }
-        }
+            if ("Trống".equals(phong.getTrangThai())) {
+                DatPhongDialog dialog = new DatPhongDialog(null, phong,nv );
+                dialog.setVisible(true);
+            }
+
     }
 
+    }
     /**
      * Tạo một ô chú thích (legend) với màu và nhãn tương ứng.
      */

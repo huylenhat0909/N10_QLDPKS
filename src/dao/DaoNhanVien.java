@@ -128,7 +128,7 @@ public class DaoNhanVien {
 	public boolean capnhatNhanVien(NhanVien nv) {
 		int n=0;
 		try {
-			ConnectDB.getInstance();
+			ConnectDB.getInstance().connect();
 			Connection con = ConnectDB.getConnection();
 			
 			String sql = "UPDATE NhanVien set tenNhanVien=?,soCCCD=?, ngaySinh=?, gioiTinh=?, sdt=?, email=?, chucVu=? where maNhanVien=?";
@@ -152,7 +152,7 @@ public class DaoNhanVien {
 	public boolean xoaNhanVien(NhanVien nv) {
 		int n=0;
 		try {
-			ConnectDB.getInstance();
+			ConnectDB.getInstance().connect();;
 			Connection con= ConnectDB.getConnection();
 			String sql="DELETE FROM NhanVien Where maNhanVien=?";
 			PreparedStatement statement= con.prepareStatement(sql);

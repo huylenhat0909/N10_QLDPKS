@@ -109,7 +109,7 @@ public class gui_TrangChu extends JFrame {
         mainButton.setIcon(icon);
         
         Map<String, JPanel> panelMap = new HashMap<>();
-        panelMap.put("Sơ đồ phòng Khách sạn", new gui_SDKS());
+        panelMap.put("Sơ đồ phòng Khách sạn", new gui_SDKS(thongtin_nv));
         panelMap.put("Phiếu đặt phòng", new gui_PhieuDatPhong());
         panelMap.put("Khuyến mãi", new gui_KhuyenMai());
         panelMap.put("Khách hàng", new gui_KhachHang());

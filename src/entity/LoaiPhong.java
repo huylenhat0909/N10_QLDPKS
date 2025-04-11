@@ -8,7 +8,7 @@ public class LoaiPhong {
 	private String moTa;
 	private Double giaPhongtheogio;
 	private Double giaPhongtheongay;
-	public LoaiPhong(String maLoaiP, String tenLoaiP, int soTang, String moTa, Double giaPhongtheogio,
+	public LoaiPhong(String maLoaiP, String tenLoaiP, String moTa, Double giaPhongtheogio,
 			Double giaPhongtheongay) {
 		super();
 		this.maLoaiP = maLoaiP;

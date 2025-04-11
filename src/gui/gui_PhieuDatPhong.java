@@ -1,6 +1,8 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -51,9 +53,11 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 	        JLabel lblSearch = new JLabel("Nhập mã phiếu:");
 	        lblSearch.setFont(font);
 	        txtSearch = new JTextField(15);
-	        btnSearch = new JButton("Find");
-	        btnReset = new JButton("Reset");
-	        btnDelete= new JButton("Delete");
+	        txtSearch.setPreferredSize(new Dimension(30, 30));
+	        txtSearch.setFont(font);
+	        btnSearch = new JButton("Tìm");
+	        btnReset = new JButton("Tải lại");
+	        btnDelete= new JButton("Xóa");
 	        btnSearch.setFont(font);
 	        btnReset.setFont(font);
 	        btnDelete.setFont(font);
@@ -88,6 +92,8 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 	        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 	        table.setFont(new Font("Arial", Font.PLAIN, 14));
 	        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 16));
+	        table.getTableHeader().setBackground(new Color(180, 0, 0));
+	        table.getTableHeader().setForeground(Color.WHITE);
 	        table.setRowHeight(25);
 	        // Lắng nghe sự kiện nhấp chuột vào dòng (double click để mở dialog cập nhật)
 	        table.addMouseListener(new MouseAdapter() {
