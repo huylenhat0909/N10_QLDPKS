@@ -13,6 +13,7 @@ import java.awt.event.MouseEvent;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -25,6 +26,13 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
+
+import dao.DaoCTPhieuDP;
+import dao.DaoKhachHang;
+import dao.DaoNhanVien;
+import dao.DaoPhieuDP;
+import entity.ChiTietPhieuDatPhong;
+import entity.PhieuDatPhong;
 
 public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 		private JTable table;
@@ -43,8 +51,16 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 		private JButton btnReset;
 		private ArrayList<Object[]> originalData;
 		private JButton btnDelete;
+		private DaoPhieuDP daoPDP;
+		private DaoCTPhieuDP daoCTPDP;
+		private DaoKhachHang daoKH;
+		private DaoNhanVien daoNV;
 
 	    public gui_PhieuDatPhong() {
+	    	daoPDP= new DaoPhieuDP();
+	    	daoCTPDP= new DaoCTPhieuDP();
+	    	daoKH= new DaoKhachHang();
+	    	daoNV= new DaoNhanVien();
 	    	Font font = new Font("Arial",Font.BOLD, 16);
 	        setLayout(new BorderLayout());
 	        JPanel headerPanel = new JPanel();
@@ -69,22 +85,12 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 	        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 0));
 	        add(headerPanel,BorderLayout.NORTH);
 	        // Khởi tạo model cho bảng với các cột cần thiết
-	        tableModel = new DefaultTableModel(new Object[]{"Mã phiếu đặt phòng","Tên nhân viên","Tên phòng", "Tên khách hàng", "SĐT khách hàng", "Kiểu thuê"}, 0) {
+	        tableModel = new DefaultTableModel(new Object[]{"Mã phiếu đặt phòng","Tên nhân viên","Tên phòng", "Tên khách hàng", "SĐT khách hàng"}, 0) {
 	            @Override
 	            public boolean isCellEditable(int row, int column) {
 	                return false;  // Người dùng không chỉnh sửa trực tiếp trên bảng
 	            }
 	        };
-	        
-	     // Thêm dữ liệu mẫu
-	        Object[] row1 = {"Phòng 101", "Nguyễn Văn A", "Phòng 1", "Khách A", "0123456789", "Theo giờ"};
-	        Object[] row2 = {"Phòng 102", "Trần Thị B", "Phòng 2", "Khách B", "0987654321", "Theo ngày"};
-
-	        tableModel.addRow(row1);
-	        tableModel.addRow(row2);
-
-	        originalData.add(row1);
-	        originalData.add(row2);
 	        
 	        // Tạo bảng từ model
 	        table = new JTable(tableModel);
@@ -114,6 +120,8 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 	        btnSearch.addActionListener(this);
 	        btnReset.addActionListener(this);
 	        btnDelete.addActionListener(this);
+	        loadDataFromDatabase();
+	        scrollPane.setViewportView(table);
 	    }
 	    
 	    /** 
@@ -239,5 +247,24 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 			            }
 			        }
 			    }
+		}
+		private void loadDataFromDatabase() {
+		    daoCTPDP= new DaoCTPhieuDP();
+		    List<ChiTietPhieuDatPhong> dsctpdp= daoCTPDP.getDatabase();
+
+		    tableModel.setRowCount(0); // Xóa dữ liệu cũ
+		    originalData.clear();      // Xóa dữ liệu gốc
+
+		    for (ChiTietPhieuDatPhong pdp : dsctpdp) {
+		        Object[] row = new Object[]{
+		            pdp.getPhietDP().getMaPDP(),
+		            pdp.getPhietDP().getNhanvien().getTenNV(),
+		            pdp.getPhong().getTenPhong(),
+		            pdp.getPhietDP().getKhachhang().getTenKH(),
+		            pdp.getPhietDP().getKhachhang().getSoDT()
+		        };
+		        tableModel.addRow(row);
+		        originalData.add(row); // Lưu dữ liệu để reset/tìm kiếm
+		    }
 		}
 }

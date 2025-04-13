@@ -20,9 +20,9 @@ public class DaoKhachHang {
 	}
 	public List<KhachHang> getDatabase(){
 		try {
-			ConnectDB.getInstance();
+			ConnectDB.getInstance().connect();
 			Connection con = ConnectDB.getConnection();
-			String sql = "Select * from NhanVien";
+			String sql = "Select * from KhachHang";
 			Statement statement = con.createStatement();
 			ResultSet rs = statement.executeQuery(sql);
 			while(rs.next()) {
@@ -44,7 +44,7 @@ public class DaoKhachHang {
 		try {
 			ConnectDB.getInstance();
 			Connection con = ConnectDB.getConnection();
-			String sql = "Select * from NhanVien where sdt like N'%"+sdtKH+"%'";
+			String sql = "Select * from KhachHang where sdt like N'%"+sdtKH+"%'";
 			Statement statement = con.createStatement();
 			ResultSet rs = statement.executeQuery(sql);
 			while(rs.next()) {
@@ -62,7 +62,28 @@ public class DaoKhachHang {
 		}
 		return dskh;
 	}
-	public boolean themNhanVien(KhachHang kh) {
+	public KhachHang getKhachHangtheoma(String makh){
+		try {
+			ConnectDB.getInstance().connect();;
+			Connection con = ConnectDB.getConnection();
+			String sql = "Select * from KhachHang where maKH like N'%"+makh+"%'";
+			Statement statement = con.createStatement();
+			ResultSet rs = statement.executeQuery(sql);
+			while(rs.next()) {
+				String maKH= rs.getString(1);
+				String tenKH= rs.getString(2);
+				String soCCCD= rs.getString(3);
+				String sdt= rs.getString(4);
+				String email=rs.getString(5);
+				kh= new KhachHang(maKH, tenKH, soCCCD, sdt, email);
+			}
+		} catch (SQLException e) {
+			//TODO: handle exception
+			e.printStackTrace();
+		}
+		return kh;
+	}
+	public boolean themKhachHang(KhachHang kh) {
 		int n=0;
 		try {
 			ConnectDB.getInstance();
@@ -85,7 +106,7 @@ public class DaoKhachHang {
 	}
 	
 	
-	public boolean capnhatNhanVien(KhachHang kh) {
+	public boolean capnhatKhachHang(KhachHang kh) {
 		int n=0;
 		try {
 			ConnectDB.getInstance();
@@ -106,7 +127,7 @@ public class DaoKhachHang {
 		}
 		return n>0;
 	}
-	public boolean xoaNhanVien(KhachHang kh) {
+	public boolean xoaKhachHang(KhachHang kh) {
 		int n=0;
 		try {
 			ConnectDB.getInstance();
@@ -120,8 +141,7 @@ public class DaoKhachHang {
 		}
 		return n>0;
 	}
-	public static String taomaKH(ArrayList<KhachHang> dskh2) {
-        //return String.format("NV%03d", count);
+	public String taomaKH(List<KhachHang> dskh2) {
 		ArrayList<String> dsmakh = new ArrayList<String>();
 		for (KhachHang kh :dskh2) {
 			dsmakh.add(kh.getMaKH());

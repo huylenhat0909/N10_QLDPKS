@@ -145,35 +145,46 @@ public class gui_SDKS extends JPanel {
      * Đọc trạng thái phòng theo ngày được chọn, tô màu cho button.
      */
     private void loadTrangThaiTheoNgay() {
-        Date date = dateChooser.getDate();
-        if (date == null) return;
-        LocalDate selectedDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    	 Date date = dateChooser.getDate();
+    	    if (date == null) return;
 
-        for (int i = 0; i < TANG; i++) {
-            for (int j = 0; j < PHONG_MOI_TANG; j++) {
-                String key = selectedDate + "-T" + (i + 1) + "P" + (j + 1);
-                String state = phongTheoNgay.getOrDefault(key, trangThai[0]); // mặc định "Trống"
-                JButton btn = phongButtons[i][j];
-                btn.setBackground(getColorByState(state));
-                btn.putClientProperty("trangThai", state);
-            }
-        }
+    	    LocalDate selectedDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    	    DaoPhong daoPhong = new DaoPhong();
+
+    	    // Lấy trạng thái phòng theo ngày từ database
+    	    Map<String, String> trangThaiPhongMap = daoPhong.getTrangThaiPhongTheoNgay(selectedDate);
+
+    	    for (int i = 0; i < TANG; i++) {
+    	        for (int j = 0; j < PHONG_MOI_TANG; j++) {
+    	            String maPhong = "T" + (i + 1) + "P" + (j + 1);
+    	            String state = trangThaiPhongMap.getOrDefault(maPhong, "Trống");
+
+    	            JButton btn = phongButtons[i][j];
+    	            btn.setBackground(getColorByState(state));
+    	            btn.putClientProperty("trangThai", state);
+    	        }
+    	    }
     }
 
     /**
      * Cập nhật label thống kê (Trống / Đã đặt / Đang sử dụng).
      */
     private void capNhatCountLabel() {
+    	DaoPhong daoPhong = new DaoPhong();
+        List<Phong> danhSachPhong = daoPhong.getDatabase(); // hoặc getAllPhong()
+
         int soPhongTrong = 0;
         int soPhongDat = 0;
         int soPhongSuDung = 0;
 
-        for (int i = 0; i < TANG; i++) {
-            for (int j = 0; j < PHONG_MOI_TANG; j++) {
-                String state = (String) phongButtons[i][j].getClientProperty("trangThai");
-                if ("Trống".equals(state)) soPhongTrong++;
-                else if ("Đã đặt".equals(state)) soPhongDat++;
-                else if ("Đang sử dụng".equals(state)) soPhongSuDung++;
+        for (Phong phong : danhSachPhong) {
+            String trangThai = phong.getTrangThai();
+            if ("Trống".equalsIgnoreCase(trangThai)) {
+                soPhongTrong++;
+            } else if ("Đã đặt".equalsIgnoreCase(trangThai)) {
+                soPhongDat++;
+            } else if ("Đang sử dụng".equalsIgnoreCase(trangThai)) {
+                soPhongSuDung++;
             }
         }
 
@@ -181,7 +192,6 @@ public class gui_SDKS extends JPanel {
                 + ", Đã đặt: " + soPhongDat
                 + ", Đang sử dụng: " + soPhongSuDung);
     }
-
     /**
      * Trả về màu sắc theo trạng thái phòng.
      */
