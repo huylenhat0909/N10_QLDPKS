@@ -7,10 +7,10 @@ public class Phong {
 	private String tenPhong;
 	private LoaiPhong loaiPhong;
 	private Integer soGiuong;
-	private Double giaPhong;
+	private	Float giaPhong;
 	private String trangThai;
 	private Integer tang;
-	public Phong(String maPhong, String tenPhong, LoaiPhong loaiPhong, Integer soGiuong, Double giaPhong, String trangThai,Integer tang) {
+	public Phong(String maPhong, String tenPhong, LoaiPhong loaiPhong, Integer soGiuong, Float giaPhong, String trangThai,Integer tang) {
 		this.maPhong = maPhong;
 		this.tenPhong = tenPhong;
 		this.loaiPhong = loaiPhong;
@@ -69,10 +69,10 @@ public class Phong {
 	public void setTrangThai(String trangThai) {
 		this.trangThai = trangThai;
 	}
-	public Double getGiaPhong() {
+	public Float getGiaPhong() {
 		return giaPhong;
 	}
-	public void setGiaPhong(Double giaPhong) {
+	public void setGiaPhong(Float giaPhong) {
 		this.giaPhong = giaPhong;
 	}
 

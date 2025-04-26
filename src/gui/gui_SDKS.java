@@ -3,7 +3,11 @@ package gui;
 import javax.swing.*;
 import com.toedter.calendar.JDateChooser;
 
+import dao.DaoCTPhieuDP;
+import dao.DaoChiTietHoaDon;
 import dao.DaoPhong;
+import entity.ChiTietHoaDon;
+import entity.ChiTietPhieuDatPhong;
 import entity.NhanVien;
 import entity.Phong;
 
@@ -12,6 +16,7 @@ import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
@@ -34,7 +39,7 @@ public class gui_SDKS extends JPanel {
 	private DaoPhong daophong;
 	private List<Phong> dsphong;
 	private NhanVien nv;
-
+	private DaoChiTietHoaDon daocthd;
     public gui_SDKS(NhanVien ttnv) {
     	nv=ttnv;
         // Sử dụng BorderLayout để giãn full không gian
@@ -76,9 +81,24 @@ public class gui_SDKS extends JPanel {
                 }
             }
         });
+        
         datePanel.add(dateChooser);
         topPanel.add(datePanel, BorderLayout.EAST);
+     // Tạo nút Load lại sơ đồ
+        JButton btnReload = new JButton("Load lại sơ đồ");
+        btnReload.setFont(font);
+        btnReload.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadTrangThaiTheoNgay(); // Gọi lại hàm cập nhật sơ đồ phòng
+                capNhatCountLabel();     // Cập nhật lại thống kê
+                revalidate();            // Cập nhật lại layout nếu có thay đổi
+                repaint();               // Vẽ lại giao diện
+            }
+        });
 
+        // Thêm nút vào bên phải
+        datePanel.add(btnReload);
         // Thêm topPanel vào khu vực NORTH
         add(topPanel, BorderLayout.NORTH);
 
@@ -137,33 +157,34 @@ public class gui_SDKS extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
         // Tải dữ liệu ban đầu
-        loadTrangThaiTheoNgay();
-        capNhatCountLabel();
+        capNhatTrangThaiPhong();
     }
 
     /**
      * Đọc trạng thái phòng theo ngày được chọn, tô màu cho button.
      */
     private void loadTrangThaiTheoNgay() {
-    	 Date date = dateChooser.getDate();
-    	    if (date == null) return;
+        Date date = dateChooser.getDate();
+        if (date == null) return;
 
-    	    LocalDate selectedDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-    	    DaoPhong daoPhong = new DaoPhong();
+        LocalDate selectedDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        DaoPhong daoPhong = new DaoPhong();
 
-    	    // Lấy trạng thái phòng theo ngày từ database
-    	    Map<String, String> trangThaiPhongMap = daoPhong.getTrangThaiPhongTheoNgay(selectedDate);
+        // Lấy trạng thái phòng theo ngày từ database
+        Map<String, String> trangThaiPhongMap = daoPhong.getTrangThaiPhongTheoNgay(selectedDate);
 
-    	    for (int i = 0; i < TANG; i++) {
-    	        for (int j = 0; j < PHONG_MOI_TANG; j++) {
-    	            String maPhong = "T" + (i + 1) + "P" + (j + 1);
-    	            String state = trangThaiPhongMap.getOrDefault(maPhong, "Trống");
+        for (int i = 0; i < TANG; i++) {
+            for (int j = 0; j < PHONG_MOI_TANG; j++) {
+                int soPhong = i * PHONG_MOI_TANG + j + 1;
+                String maPhong = String.format("MP%03d", soPhong);
 
-    	            JButton btn = phongButtons[i][j];
-    	            btn.setBackground(getColorByState(state));
-    	            btn.putClientProperty("trangThai", state);
-    	        }
-    	    }
+                String state = trangThaiPhongMap.getOrDefault(maPhong, "Trống");
+
+                JButton btn = phongButtons[i][j];
+                btn.setBackground(getColorByState(state));
+                btn.putClientProperty("trangThai", state);
+            }
+        }
     }
 
     /**
@@ -172,21 +193,11 @@ public class gui_SDKS extends JPanel {
     private void capNhatCountLabel() {
     	DaoPhong daoPhong = new DaoPhong();
         List<Phong> danhSachPhong = daoPhong.getDatabase(); // hoặc getAllPhong()
-
-        int soPhongTrong = 0;
-        int soPhongDat = 0;
-        int soPhongSuDung = 0;
-
-        for (Phong phong : danhSachPhong) {
-            String trangThai = phong.getTrangThai();
-            if ("Trống".equalsIgnoreCase(trangThai)) {
-                soPhongTrong++;
-            } else if ("Đã đặt".equalsIgnoreCase(trangThai)) {
-                soPhongDat++;
-            } else if ("Đang sử dụng".equalsIgnoreCase(trangThai)) {
-                soPhongSuDung++;
-            }
-        }
+        DaoChiTietHoaDon daocthd= new DaoChiTietHoaDon();
+        DaoCTPhieuDP daoctpdp= new DaoCTPhieuDP();
+        int soPhongTrong =danhSachPhong.size()-daocthd.sluonghdchuathanhtoan();
+        int soPhongDat = daoctpdp.sluongctpdpchuacocthd();
+        int soPhongSuDung = daocthd.sluonghdchuathanhtoan();
 
         countLabel.setText("Trống: " + soPhongTrong
                 + ", Đã đặt: " + soPhongDat
@@ -196,14 +207,12 @@ public class gui_SDKS extends JPanel {
      * Trả về màu sắc theo trạng thái phòng.
      */
     private Color getColorByState(String state) {
-        switch (state) {
-            case "Đang sử dụng":
-                return Color.RED;
-            case "Đã đặt":
-                return Color.ORANGE;
-            default:
-                return Color.GREEN;
-        }
+        return switch (state) {
+            case "Đang sử dụng" -> Color.RED;
+            case "Đã đặt" -> Color.ORANGE;
+            case "Trống" -> Color.GREEN;
+            default -> Color.LIGHT_GRAY;
+        };
     }
 
     /**
@@ -211,25 +220,82 @@ public class gui_SDKS extends JPanel {
      */
     private class PhongButtonListener implements ActionListener {
         private Phong phong;
-
+        DaoCTPhieuDP daoctpd= new DaoCTPhieuDP();
 		@Override
         public void actionPerformed(ActionEvent e) {
             JButton clickedButton = (JButton) e.getSource();
+			LocalDateTime localDate = LocalDateTime.now();
+			Date date = dateChooser.getDate();
+			//Set ngày giờ trên datachoose
+			LocalDateTime localDateTime = date.toInstant()
+			        .atZone(ZoneId.systemDefault())
+			        .toLocalDate()
+			        .atTime(23, 0); // đặt giờ mặc định là 14:00
+			
             String maPhong = (String) clickedButton.getClientProperty("maPhong");
             String tenPhong = (String) clickedButton.getClientProperty("tenPhong");
             phong=daophong.getPhongtheoTen(tenPhong);
-
-            if ("Đang sử dụng".equals(phong.getTrangThai())) {
-                ThanhToanDialog dialog = new ThanhToanDialog(null,maPhong, tenPhong, "Nguyễn Văn A", "0912345678");
-                dialog.setVisible(true);
+            daocthd= new DaoChiTietHoaDon();
+            ChiTietHoaDon cthd = daocthd.getCTHDtheophongtt(maPhong,false);
+            ChiTietPhieuDatPhong ctpdp= daoctpd.getCTPDPtheoMaPhongDay(maPhong, localDate.toLocalDate());
+            boolean coCTHD = (cthd != null && cthd.getHD() != null && cthd.getNgayLapHD() != null);
+            boolean coCTPDP = (ctpdp != null && ctpdp.getGioDatPhong() != null && ctpdp.getGioTraPhong() != null);
+			/*
+			 * if ("Đang sử dụng".equals(phong.getTrangThai())) { ThanhToanDialog dialog =
+			 * new
+			 * ThanhToanDialog(null,maPhong,cthd.getHD().getKhachHang().getSoDT(),cthd.getHD
+			 * ().getMaHD()); dialog.setVisible(true); capNhatTrangThaiPhong(); } if
+			 * ("Trống".equals(phong.getTrangThai())) { DatPhongDialog dialog = new
+			 * DatPhongDialog(null, phong,nv ); dialog.setVisible(true);
+			 * capNhatTrangThaiPhong(); } if ("Đã đặt".equals(phong.getTrangThai())) { Date
+			 * date1 = dateChooser.getDate(); LocalDate selectedDate =
+			 * date1.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			 * NhanPhongDialog dialog = new NhanPhongDialog(null, phong,nv, selectedDate );
+			 * dialog.setVisible(true); capNhatTrangThaiPhong(); }
+			 */
+         // Tạo mốc 12 giờ trưa ngày hôm sau
+            
+            if (coCTHD) {
+            	LocalDateTime gioTruaNgayHomSau = cthd.getNgayLapHD().toLocalDate().plusDays(1).atTime(6, 0);
+                LocalDateTime thoiGianLap = cthd.getNgayLapHD();
+                if (localDateTime.isAfter(thoiGianLap)&& localDateTime.isBefore(gioTruaNgayHomSau)) {
+                    // Hiện đang sử dụng → Thanh toán
+                    ThanhToanDialog dialog = new ThanhToanDialog(null, maPhong,
+                            cthd.getHD().getKhachHang().getSoDT(),
+                            cthd.getHD().getMaHD());
+                    dialog.setVisible(true);
+                    capNhatTrangThaiPhong();
+                    return;
+                }else {
+                	DatPhongDialog dialog = new DatPhongDialog(null, phong, nv,localDateTime );
+                    dialog.setVisible(true);
+                    capNhatTrangThaiPhong();
+                    return;
+                }
+                
             }
-            if ("Trống".equals(phong.getTrangThai())) {
-                DatPhongDialog dialog = new DatPhongDialog(null, phong,nv );
-                dialog.setVisible(true);
-            }
 
+            if (!coCTHD && coCTPDP) {
+                LocalDateTime ngayNhan = ctpdp.getGioDatPhong();
+                LocalDateTime ngayTra = ctpdp.getGioTraPhong();
+                if ((localDate.isEqual(ngayNhan) || localDate.isAfter(ngayNhan)) &&
+                    localDate.isBefore(ngayTra)) {
+                    // Trong khoảng đặt phòng → Nhận phòng
+                	Date date1 = dateChooser.getDate();
+                	LocalDate selectedDate = date1.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                    NhanPhongDialog dialog = new NhanPhongDialog(null, phong, nv,selectedDate);
+                    dialog.setVisible(true);
+                    capNhatTrangThaiPhong();
+                    return;
+                }
+            }
+            
+         // Không có hóa đơn và không có phiếu đặt → cho phép đặt mới
+            DatPhongDialog dialog = new DatPhongDialog(null, phong, nv,localDateTime);
+            dialog.setVisible(true);
+            capNhatTrangThaiPhong();
+            
     }
-
     }
     /**
      * Tạo một ô chú thích (legend) với màu và nhãn tương ứng.
@@ -247,5 +313,10 @@ public class gui_SDKS extends JPanel {
         panel.add(lbl);
 
         return panel;
+    }
+    public void capNhatTrangThaiPhong() {
+    	loadTrangThaiTheoNgay();
+        capNhatCountLabel();
+        
     }
 }

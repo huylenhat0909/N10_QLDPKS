@@ -1,10 +1,12 @@
 package dao;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,6 +16,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.JTextField;
 
 import connectDB.ConnectDB;
 import entity.LoaiPhong;
@@ -38,7 +42,7 @@ public class DaoPhong {
 				String tenPhong= rs.getString(2);
 				String maLoaiPhong= rs.getString(3);
 				Integer soGiuong= rs.getInt(4);
-				Double giaPhongtheogiuong= rs.getDouble(5);
+				Float giaPhongtheogiuong= rs.getFloat(5);
 				String trangThai=rs.getString(6);
 				Integer tang= rs.getInt(7);
 				daolp=new DaoLoaiPhong();
@@ -46,6 +50,7 @@ public class DaoPhong {
 				phong= new Phong(maPhong, tenPhong, loaiPhong, soGiuong, giaPhongtheogiuong, trangThai, tang);
 				dsPhong.add(phong);
 			}
+			statement.close();
 		} catch (SQLException e) {
 			//TODO: handle exception
 			e.printStackTrace();
@@ -54,7 +59,7 @@ public class DaoPhong {
 	}
 	public Phong getPhongtheoTen(String name) {
 		try {
-			ConnectDB.getInstance();
+			ConnectDB.getInstance().connect();
 			Connection con= ConnectDB.getConnection();
 			String sql = "Select * from Phong where tenPhong like N'%"+name+"%'";
 			Statement statement = con.createStatement();
@@ -64,7 +69,7 @@ public class DaoPhong {
 				String tenPhong= rs.getString(2);
 				String maLoaiPhong= rs.getString(3);
 				Integer soGiuong= rs.getInt(4);
-				Double giaPhongtheogiuong= rs.getDouble(5);
+				Float giaPhongtheogiuong= rs.getFloat(5);
 				String trangThai=rs.getString(6);
 				Integer tang= rs.getInt(7);
 				daolp=new DaoLoaiPhong();
@@ -89,7 +94,7 @@ public class DaoPhong {
 				String tenPhong= rs.getString(2);
 				String maLoaiPhong= rs.getString(3);
 				Integer soGiuong= rs.getInt(4);
-				Double giaPhongtheogiuong= rs.getDouble(5);
+				Float giaPhongtheogiuong= rs.getFloat(5);
 				String trangThai=rs.getString(6);
 				Integer tang= rs.getInt(7);
 				daolp=new DaoLoaiPhong();
@@ -119,41 +124,143 @@ public class DaoPhong {
 		}
 		return n>0;
 	}
-	public Map<String, String> getTrangThaiPhongTheoNgay(LocalDate ngay) {
-		Map<String, String> ketQua = new HashMap<>();
-	    Connection con1 = null;
-	    PreparedStatement stmt = null;
-	    ResultSet rs = null;
+	public Map<String, String> getTrangThaiPhongTheoNgay(LocalDate date) {
+	    Map<String, String> map = new HashMap<>();
 
 	    try {
-	    	ConnectDB.getInstance().connect();
-			con1 = ConnectDB.getConnection(); // Giả định bạn có lớp Database để lấy connection
-	        String sql = "SELECT ct.maPhong, ct.gioDatPhong, p.trangThai " +
-	                     "FROM CTPhieuDatPhong ct " +
-	                     "JOIN Phong p ON ct.maPhong = p.maPhong " +
-	                     "WHERE CAST(? AS DATE) BETWEEN CAST(ct.gioDatPhong AS DATE) AND CAST(ct.gioTraPhong AS DATE)";
-	        stmt = con1.prepareStatement(sql);
-	        stmt.setDate(1, java.sql.Date.valueOf(ngay));
+	        ConnectDB.getInstance().connect();
+	        Connection con = ConnectDB.getConnection();
 
-	        rs = stmt.executeQuery();
-	        while (rs.next()) {
-	            String maPhong = rs.getString("maPhong");
-	            LocalDate ngayNhan = rs.getTimestamp("ngayNhan").toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-	            String trangThai = rs.getString("trangThai");
+	        // Xác định thời gian bắt đầu và kết thúc của ngày
+	        LocalDateTime startOfDay = date.atStartOfDay();         // 00:00
+	        LocalDateTime endOfDay = date.plusDays(1).atStartOfDay(); // 00:00 ngày hôm sau
 
-	            // Ghép key để đồng bộ với cách bạn xử lý key trong loadTrangThaiTheoNgay()
-	            String key = ngay + "-" + maPhong;
-	            ketQua.put(key, trangThai);
+	        Timestamp startTimestamp = Timestamp.valueOf(startOfDay);
+	        Timestamp endTimestamp = Timestamp.valueOf(endOfDay);
+
+	        // 1. Lấy các phòng đang sử dụng (ChiTietHoaDon)
+	        String sqlHD = """
+	            SELECT DISTINCT p.maPhong  
+	            FROM ChiTietHoaDon cthd  
+	            JOIN Phong p ON cthd.maPhong = p.maPhong  
+	            WHERE cthd.ngayLapHoaDon >= ?  
+	            AND cthd.ngayLapHoaDon < ?
+	            AND cthd.trangThai='0'; 
+	        """;
+
+	        PreparedStatement psHD = con.prepareStatement(sqlHD);
+	        psHD.setTimestamp(1, startTimestamp);
+	        psHD.setTimestamp(2, endTimestamp);
+	        ResultSet rsHD = psHD.executeQuery();
+	        while (rsHD.next()) {
+	            String maPhong = rsHD.getString("maPhong");
+	            map.put(maPhong, "Đang sử dụng");
+	        }
+
+	        // 2. Lấy các phòng đã đặt (CTPhieuDatPhong) — nếu chưa bị gán là "Đang sử dụng"
+	        String sqlPDP = """
+	            SELECT DISTINCT p.maPhong
+	            FROM CTPhieuDatPhong ctpdp
+	            JOIN Phong p ON ctpdp.maPhong = p.maPhong
+	            WHERE ctpdp.gioDatPhong < ? 
+	            AND ctpdp.gioTraPhong > ?
+	            AND kieuThue='1';
+	        """;
+
+	        PreparedStatement psPDP = con.prepareStatement(sqlPDP);
+	        psPDP.setTimestamp(1, endTimestamp); // Đặt trước khi ngày kết thúc
+	        psPDP.setTimestamp(2, startTimestamp); // Trả sau khi ngày bắt đầu
+	        ResultSet rsPDP = psPDP.executeQuery();
+	        while (rsPDP.next()) {
+	            String maPhong = rsPDP.getString("maPhong");
+	            if (!map.containsKey(maPhong)) {
+	                map.put(maPhong, "Đã đặt");
+	            }
 	        }
 
 	    } catch (SQLException e) {
 	        e.printStackTrace();
-	    } finally {
-	        try { if (rs != null) rs.close(); } catch (Exception e) {}
-	        try { if (stmt != null) stmt.close(); } catch (Exception e) {}
-	        try { if (con1 != null) con1.close(); } catch (Exception e) {}
 	    }
 
-	    return ketQua;
+	    return map;
 	}
+
+
+	public static String taomaP(List<Phong> dsp2) {
+        //return String.format("NV%03d", count);
+		ArrayList<String> dsma = new ArrayList<String>();
+		for (Phong lp: dsp2) {
+			dsma.add(lp.getMaPhong());
+		}
+		String newID;
+        int count = dsma.size() + 1;
+		do {
+			newID=String.format("MP%03d",count );
+			count++;
+		}while(dsma.contains(newID));
+		return newID;
+	}
+	public boolean capnhattPhong(String txtmaPhong, JTextField txttenPhong, JTextField txttenLoaiPhong, JTextField txtsogiuong,
+            JTextField txthesogiatheogiuong, JTextField txttrangthai, JTextField txtsotang) {
+		int n = 0;
+
+		try {
+			String tenLoai = txttenLoaiPhong.getText().trim();
+			LoaiPhong lphong = daolp.getLoaiPhongTheoTen(tenLoai);
+
+			if (lphong == null) {
+				System.out.println("Không tìm thấy loại phòng: " + tenLoai);
+				return false;
+			}
+
+			ConnectDB.getInstance().connect();
+			Connection con = ConnectDB.getConnection();
+			String sql = "UPDATE Phong SET tenPhong=?, maLoaiPhong=?, soGiuong=?, giaPhongTheoGiuong=?, trangThai=?, tang=? WHERE maPhong=?";
+			PreparedStatement statement = con.prepareStatement(sql);
+
+			statement.setString(1, txttenPhong.getText().trim());
+			statement.setString(2, lphong.getMaLoaiP());
+			statement.setInt(3, Integer.parseInt(txtsogiuong.getText().trim()));
+			statement.setFloat(4, Float.parseFloat(txthesogiatheogiuong.getText().trim()));
+			statement.setString(5, txttrangthai.getText().trim());
+			statement.setInt(6, Integer.parseInt(txtsotang.getText().trim()));
+			statement.setString(7, txtmaPhong);
+
+			n = statement.executeUpdate();
+			statement.close();
+
+		} catch (SQLException e) {
+			System.out.println("Lỗi khi cập nhật phòng:");
+			e.printStackTrace();
+		} catch (NumberFormatException e) {
+			System.out.println("Lỗi định dạng số:");
+			e.printStackTrace();
+		}
+
+		return n > 0;
+	}
+
+	public boolean themPhong(Phong phong2) {
+		// TODO Auto-generated method stub
+		int n =0;
+		try {
+			ConnectDB.getInstance();
+			Connection con= ConnectDB.getConnection();
+			String sql= "INSERT INTO Phong([maPhong],[tenPhong],[maLoaiPhong],[soGiuong],[giaPhongTheoGiuong],[trangThai],[tang]) VALUES(?,?,?,?,?,?,?)";
+			PreparedStatement statement= con.prepareStatement(sql);
+			statement.setString(1,phong2.getMaPhong());
+			statement.setString(2,phong2.getTenPhong());
+			statement.setString(3,phong2.getLoaiPhong().getMaLoaiP());
+			statement.setInt(4,phong2.getSoGiuong());
+			statement.setDouble(5, phong2.getGiaPhong());
+			statement.setString(6,phong2.getTrangThai());
+			statement.setInt(7, phong2.getTang());
+			n=statement.executeUpdate();
+			statement.close();
+		}catch(SQLException E) {
+			E.printStackTrace();
+		}
+		return n>0;
+	}
+	
 }

@@ -98,4 +98,22 @@ public class DaoPhieuDP {
 		}while(dsmaks.contains(newID));
 		return newID;
 	}
+	public boolean xoaPhieuDatPhongTheoMaPDP(String maPhieuDatPhong) {
+	    int n = 0;
+	    try {
+	        ConnectDB.getInstance().connect();
+	        Connection con = ConnectDB.getConnection();
+	        String sql = "DELETE FROM PhieuDatPhong WHERE maPhieuDatPhong = ?";
+	        PreparedStatement statement = con.prepareStatement(sql);
+	        statement.setString(1, maPhieuDatPhong);
+
+	        n = statement.executeUpdate();
+
+	        statement.close();
+	        con.close();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return n > 0;
+	}
 }

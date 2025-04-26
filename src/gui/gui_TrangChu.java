@@ -172,8 +172,8 @@ public class gui_TrangChu extends JFrame {
             panelMap.put("Danh sách phòng", new gui_Phong());
             panelMap.put("Danh sách loại dịch vụ", new gui_LoaiDichVu());
             panelMap.put("Danh sách dịch vụ", new gui_DichVu());
-            panelMap.put("Danh sách nhân viên", new gui_LoaiDichVu());
-            panelMap.put("Tài khoản nhân viên", new gui_DichVu());
+            panelMap.put("Danh sách nhân viên", new gui_NhanVien());
+            panelMap.put("Tài khoản nhân viên", new gui_TaiKhoan());
             panelMap.put("Danh sách hóa đơn", new gui_HoaDon());
             panelMap.put("Chi tiết hóa đơn", new gui_ChiTietHoaDon());
             panelMap.put("Doanh thu", new gui_DoanhThu());

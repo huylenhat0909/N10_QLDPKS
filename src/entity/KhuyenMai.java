@@ -9,14 +9,16 @@ public class KhuyenMai {
 	private LocalDateTime ngayApDung;
 	private LocalDateTime ngayHetHan;
 	private Double tienApdungKM;
+	private Double phanTramKM;
 	public KhuyenMai(String maKM, String tenKM, LocalDateTime ngayApDung, LocalDateTime ngayHetHan,
-			Double tienApdungKM) {
+			Double tienApdungKM,Double phanTramKM) {
 		super();
 		this.maKM = maKM;
 		this.tenKM = tenKM;
 		this.ngayApDung = ngayApDung;
 		this.ngayHetHan = ngayHetHan;
 		this.tienApdungKM = tienApdungKM;
+		this.setPhanTramKM(phanTramKM);
 	}
 	public KhuyenMai() {
 	}
@@ -64,6 +66,12 @@ public class KhuyenMai {
 			return false;
 		KhuyenMai other = (KhuyenMai) obj;
 		return Objects.equals(maKM, other.maKM);
+	}
+	public Double getPhanTramKM() {
+		return phanTramKM;
+	}
+	public void setPhanTramKM(Double phanTramKM) {
+		this.phanTramKM = phanTramKM;
 	}
 	
 }

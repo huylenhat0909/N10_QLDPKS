@@ -3,6 +3,8 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -12,6 +14,7 @@ import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -28,10 +31,14 @@ import javax.swing.SpinnerDateModel;
 import com.toedter.calendar.JDateChooser;
 
 import dao.DaoCTPhieuDP;
+import dao.DaoChiTietHoaDon;
+import dao.DaoHoaDon;
 import dao.DaoKhachHang;
 import dao.DaoPhieuDP;
 import dao.DaoPhong;
+import entity.ChiTietHoaDon;
 import entity.ChiTietPhieuDatPhong;
+import entity.HoaDon;
 import entity.KhachHang;
 import entity.NhanVien;
 import entity.PhieuDatPhong;
@@ -57,8 +64,13 @@ public class DatPhongDialog extends JDialog {
 	private ChiTietPhieuDatPhong ctpdp;
 	private JOptionPane spinnerGioNhan;
 	private DaoPhong daophong;
+	private ChiTietHoaDon cthd;
+	private HoaDon hd;
+	private gui_SDKS guisdks;
+	private KhachHang kh;
 
-	public DatPhongDialog(JFrame parent, Phong phong, NhanVien nhanVien ) {
+	public DatPhongDialog(JFrame parent, Phong phong, NhanVien nhanVien,LocalDateTime localDateTime ) {
+		
 		super(parent, "Tạo phiếu đặt phòng", true);
         setSize(500, 620);
         setLocationRelativeTo(parent);
@@ -66,6 +78,8 @@ public class DatPhongDialog extends JDialog {
         daophieudp=new DaoPhieuDP();
         daoctphieudp=new DaoCTPhieuDP();
         daokh= new DaoKhachHang();
+        guisdks= new gui_SDKS(nhanVien);
+        
         //Panle hiển thi thông tin nhân viên phụ trách đặt phòng
      // Panel hiển thị thông tin nhân viên phụ trách đặt phòng
         JPanel panelNhanVien = new JPanel(new GridLayout(3, 2, 5, 5));
@@ -97,12 +111,28 @@ public class DatPhongDialog extends JDialog {
         tfSDT = new JTextField();
         tfEmail = new JTextField();
         tfCCCD= new JTextField();
-        cbKieuThue = new JComboBox<>(new String[]{"Chọn kiểu đặt","Theo giờ", "Theo ngày"});
+        cbKieuThue = new JComboBox<>();
+        if (LocalDateTime.now().isBefore(localDateTime)) {
+            cbKieuThue.removeAllItems();
+            cbKieuThue.addItem("Theo ngày");
+        } else {
+            cbKieuThue.removeAllItems();
+            cbKieuThue.addItem("Chọn kiểu đặt");
+            cbKieuThue.addItem("Theo giờ");
+            cbKieuThue.addItem("Theo ngày");
+        }
         cbKieuThue.setSelectedIndex(0);
         panelKhach.add(new JLabel("Tên khách:"));
         panelKhach.add(tfTenKhach);
+     // Tạo panel riêng cho dòng "SĐT + nút Tìm"
+        JPanel sdtPanel = new JPanel(new BorderLayout());
+        JButton btnTimKiem = new JButton("Tìm");
+        sdtPanel.add(tfSDT, BorderLayout.CENTER);
+        sdtPanel.add(btnTimKiem, BorderLayout.EAST);
+
+        // Thêm vào panelKhach
         panelKhach.add(new JLabel("SĐT:"));
-        panelKhach.add(tfSDT);
+        panelKhach.add(sdtPanel);
         panelKhach.add(new JLabel("Email:"));
         panelKhach.add(tfEmail);
         panelKhach.add(new JLabel("So CCCD:"));
@@ -215,17 +245,37 @@ public class DatPhongDialog extends JDialog {
             try {
                 // TODO: Ghi vào SQL bảng phieu_dat_phong hoặc in ra console thử
                 dskh = daokh.getDatabase();
-                String makh = daokh.taomaKH(dskh);
-                KhachHang kh = new KhachHang(makh, tfTenKhach.getText(), tfCCCD.getText(), tfSDT.getText(), tfEmail.getText());
-                daokh.themKhachHang(kh);
+             // Kiểm tra theo số điện thoại (giả sử không phân biệt hoa thường và bỏ khoảng trắng)
+                String soDienThoaiNhap = tfSDT.getText().trim();
+                boolean daTonTai = dskh.stream()
+                    .anyMatch(khInDB -> khInDB.getSoDT().trim().equals(soDienThoaiNhap));
 
-                dsphieudp = daophieudp.getDatabase();
-                String mapdp = daophieudp.taomaPDP(dsphieudp);
-                pdp = new PhieuDatPhong(mapdp, nhanVien, kh);
+                if (!daTonTai) {
+                	String makh = daokh.taomaKH(dskh);
+                    KhachHang kh_moi = new KhachHang(makh, tfTenKhach.getText(), tfCCCD.getText(), tfSDT.getText(), tfEmail.getText());
+                    boolean themThanhCong = daokh.themKhachHang(kh_moi);
+                    dsphieudp = daophieudp.getDatabase();
+                    String mapdp = daophieudp.taomaPDP(dsphieudp);
+                    pdp = new PhieuDatPhong(mapdp, nhanVien, kh_moi);
+                    kh=kh_moi;
+                    if (themThanhCong) {
+                        System.out.println("Thêm khách hàng mới thành công!");
+                    } else {
+                        System.out.println("Thêm khách hàng thất bại!");
+                    }
+                } else {
+                    System.out.println("Khách hàng đã tồn tại theo số điện thoại, không thêm vào lại.");
+                    KhachHang kh_cu = daokh.getKhachHangtheoSDT(soDienThoaiNhap);
+                    dsphieudp = daophieudp.getDatabase();
+                    String mapdp = daophieudp.taomaPDP(dsphieudp);
+                    pdp = new PhieuDatPhong(mapdp, nhanVien, kh_cu);
+                    kh=kh_cu;
+                }
+                
 
-                boolean kieuthue = cbKieuThue.getSelectedItem().equals("Thuê ngày");
+                boolean kieuthue = cbKieuThue.getSelectedItem().equals("Theo ngày");
                 LocalDateTime ngayNhan = getNgayNhan(spinnerGioNhan);
-                LocalDateTime ngayTra = getNgayTra();
+                LocalDateTime ngayTra = getNgayTra(spinnerGioNhan);
 
                 String trangThai;
                 if (ngayNhan.isBefore(LocalDateTime.now()) || ngayNhan.isEqual(LocalDateTime.now())) {
@@ -233,22 +283,51 @@ public class DatPhongDialog extends JDialog {
                 } else {
                     trangThai = "Đã đặt";
                 }
+                //kiểm tra xem khi chọn thuê theo ngày thì có ct phiết đặt phòng nào ở đằng sau hay không
+                ChiTietPhieuDatPhong kiemtra= daoctphieudp.getCTPDPtheoMaPhong(phong.getMaPhong());
+                //kiemtra == null có nghĩa là khong 
+                if(kiemtra != null  && kieuthue && ngayTra != null &&
+                	    (ngayTra.isEqual(kiemtra.getGioDatPhong()) || ngayTra.isAfter(kiemtra.getGioDatPhong())) &&
+                	    (ngayTra.isEqual(kiemtra.getGioTraPhong()) || ngayTra.isBefore(kiemtra.getGioTraPhong())))  {
+                	JOptionPane.showMessageDialog(this, "Đặt phòng thất bại do thời gian đặt đã có đơn đặt trước!");
+                 } else if(kieuthue) {
+                       
+                        ctpdp = new ChiTietPhieuDatPhong(pdp, phong, ngayNhan, ngayTra, kieuthue);
+                        boolean themPDP = daophieudp.themPhieuDatPhong(pdp);
+                        boolean themCTPDP = daoctphieudp.themCTPhieuDatPhong(ctpdp);
 
-                ctpdp = new ChiTietPhieuDatPhong(pdp, phong, ngayNhan, ngayTra, kieuthue);
-                boolean themPDP = daophieudp.themPhieuDatPhong(pdp);
-                boolean themCTPDP = daoctphieudp.themCTPhieuDatPhong(ctpdp);
+                        if (themPDP && themCTPDP) {
+                        	DaoPhong daophong = new DaoPhong();
+                            daophong.capnhatttPhong(trangThai, phong.getMaPhong());
+                            JOptionPane.showMessageDialog(this, "Đặt phòng thành công!");
+                            guisdks.capNhatTrangThaiPhong();
+                            dispose();
+                    }
+                 }
+                 else {
+                	DaoHoaDon daohd= new DaoHoaDon();
+                	DaoChiTietHoaDon daocthd= new DaoChiTietHoaDon();
+                	List<HoaDon> dshd = daohd.getDatabase();
+                	String mahd = daohd.taomaHD(dshd);
+                	hd=new HoaDon(mahd, nhanVien, null, kh);
+                	cthd= new ChiTietHoaDon(hd, phong, ngayNhan,false,"Rỗng",0, null);
+                	ctpdp = new ChiTietPhieuDatPhong(pdp, phong, ngayNhan, ngayTra, kieuthue);
+                    boolean themPDP = daophieudp.themPhieuDatPhong(pdp);
+                    boolean themCTPDP = daoctphieudp.themCTPhieuDatPhong(ctpdp);
+                	boolean themhd = daohd.themHoaDon(hd);
+                    boolean themCThd = daocthd.themCTHoaDon(cthd);
 
-                System.out.println("Thêm PDP: " + themPDP);
-                System.out.println("Thêm CT_PDP: " + themCTPDP);
-
-                if (themPDP && themCTPDP) {
-                	DaoPhong daophong = new DaoPhong();
-                    daophong.capnhatttPhong(trangThai, phong.getMaPhong());
-                    JOptionPane.showMessageDialog(this, "Đặt phòng thành công!");
-                    dispose();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Đặt phòng thất bại!");
+                    if (themhd && themCThd) {
+                    	DaoPhong daophong = new DaoPhong();
+                        daophong.capnhatttPhong(trangThai, phong.getMaPhong());
+                        JOptionPane.showMessageDialog(this, "Nhận phòng thành công!");
+                        guisdks.capNhatTrangThaiPhong();
+                        dispose();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Nhận phòng thất bại!");
+                    }
                 }
+                
        
             } catch (Exception e1) {
                 // Hiển thị lỗi để dễ debug
@@ -267,6 +346,33 @@ public class DatPhongDialog extends JDialog {
         centerPanel.add(panelNgay);
         add(centerPanel, BorderLayout.CENTER);
         add(btnXacNhan, BorderLayout.SOUTH);
+        btnTimKiem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String soDienThoai = tfSDT.getText().trim();
+                if (soDienThoai.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Vui lòng nhập số điện thoại để tìm kiếm!");
+                    return;
+                }
+
+                DaoKhachHang daoKH = new DaoKhachHang();
+                List<KhachHang> dsKH = daoKH.getDatabase();
+
+                Optional<KhachHang> khachTimDuoc = dsKH.stream()
+                    .filter(kh -> kh.getSoDT().trim().equals(soDienThoai))
+                    .findFirst();
+
+                if (khachTimDuoc.isPresent()) {
+                    KhachHang kh = khachTimDuoc.get();
+                    tfTenKhach.setText(kh.getTenKH());
+                    tfCCCD.setText(kh.getCCCD());
+                    tfEmail.setText(kh.getEmail());
+                    JOptionPane.showMessageDialog(null, "Đã tìm thấy khách hàng.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Không tìm thấy khách hàng với số điện thoại đã nhập.");
+                }
+            }
+        });
     }
 
     private boolean isValidEmail(String email) {
@@ -296,22 +402,28 @@ public class DatPhongDialog extends JDialog {
         }
     }
 
-    private LocalDateTime getNgayTra() {
+    private LocalDateTime getNgayTra(JSpinner spinnerGioNhan) {
         String kieuThue = (String) cbKieuThue.getSelectedItem();
+        
         if ("Theo ngày".equals(kieuThue)) {
             Date ngay = ((JDateChooser) dateTra).getDate();
             if (ngay == null) return null;
 
-            // Mặc định giờ 14:00
+            // Mặc định giờ trả là 14:00 nếu thuê theo ngày
             return ngay.toInstant()
                     .atZone(ZoneId.systemDefault())
                     .toLocalDate()
                     .atTime(14, 0);
         } else {
-            // Thuê theo giờ thì không có ngày trả
-            return null;
+            // Nếu thuê theo giờ thì trả về chính giờ nhận
+        	Date gioNhan = (Date) spinnerGioNhan.getValue();
+            if (gioNhan == null) return null;
+
+            return gioNhan.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
         }
     }
-
+    
 
 }

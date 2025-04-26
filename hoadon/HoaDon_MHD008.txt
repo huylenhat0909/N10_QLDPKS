@@ -1,0 +1,11 @@
+======== HOÁ ĐƠN THANH TOÁN ========
+Mã hoá đơn: MHD008
+Tên khách hàng: Lê Xuân Thu
+SĐT: 0908828046
+Phòng: Phòng 402
+Ngày đặt: 2025-04-16T12:58
+Ngày trả: 1970-01-01T12:58
+Phương thức thanh toán: ZaloPay
+------------------------------------
+DỊCH VỤ ĐÃ SỬ DỤNG:
+Tên dịch vụ               Số lượng   Đơn giá         Thành tiền     

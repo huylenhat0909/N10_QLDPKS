@@ -1,0 +1,11 @@
+======== HOÁ ĐƠN THANH TOÁN ========
+Mã hoá đơn: MHD006
+Tên khách hàng: Lê Xuân Thu
+SĐT: 0908828046
+Phòng: Phòng 502
+Ngày đặt: 2025-04-16T13:17
+Ngày trả: 2025-04-16T13:17:33.807
+Phương thức thanh toán: Momo
+------------------------------------
+DỊCH VỤ ĐÃ SỬ DỤNG:
+Tên dịch vụ               Số lượng   Đơn giá         Thành tiền     

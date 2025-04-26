@@ -3,9 +3,13 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 import connectDB.ConnectDB;
+import entity.KhuyenMai;
 import entity.NhanVien;
 import entity.TaiKhoan;
 
@@ -42,5 +46,27 @@ public class DaoTaiKhoan {
 			e.printStackTrace();
 		}
 		return tk;
+	}
+	public List<TaiKhoan> getDatabase() {
+		try {
+			ConnectDB.getInstance().connect();
+			Connection con = ConnectDB.getConnection();
+			String sql = "Select * from TaiKhoan";
+			Statement statement = con.createStatement();
+			ResultSet rs = statement.executeQuery(sql);
+			while(rs.next()) {
+				String maNV=rs.getString(3);
+				String taikhoan= rs.getString(1);
+				String matkhau= rs.getString(2);
+				DaoNhanVien daonv= new DaoNhanVien();
+				NhanVien nv= daonv.getNhanVienTheoMa(maNV);
+				tk= new TaiKhoan(nv, taikhoan, matkhau);
+				dstk.add(tk);
+			}
+		}catch (SQLException e) {
+			//TODO: handle exception
+			e.printStackTrace();
+	}
+		return dstk;
 	}
 }

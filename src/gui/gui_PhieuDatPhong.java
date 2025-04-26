@@ -10,14 +10,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -55,6 +59,7 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 		private DaoCTPhieuDP daoCTPDP;
 		private DaoKhachHang daoKH;
 		private DaoNhanVien daoNV;
+		private JTextField giaPhongField;
 
 	    public gui_PhieuDatPhong() {
 	    	daoPDP= new DaoPhieuDP();
@@ -85,7 +90,7 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 	        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 0));
 	        add(headerPanel,BorderLayout.NORTH);
 	        // Khởi tạo model cho bảng với các cột cần thiết
-	        tableModel = new DefaultTableModel(new Object[]{"Mã phiếu đặt phòng","Tên nhân viên","Tên phòng", "Tên khách hàng", "SĐT khách hàng"}, 0) {
+	        tableModel = new DefaultTableModel(new Object[]{"Mã phiếu đặt phòng","Tên nhân viên","Tên phòng", "Tên khách hàng", "SĐT khách hàng","Giá phòng đã đặt"}, 0) {
 	            @Override
 	            public boolean isCellEditable(int row, int column) {
 	                return false;  // Người dùng không chỉnh sửa trực tiếp trên bảng
@@ -134,12 +139,17 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 	        String tenKhachHang = (String) tableModel.getValueAt(row, 1);
 	        String sdt = (String) tableModel.getValueAt(row, 2);
 	        String kieuThue = (String) tableModel.getValueAt(row, 3);
-	        
+	        String giaphong= tableModel.getValueAt(row, 4).toString();
+	     // JComboBox cho kiểu thuê
+	        String[] kieuThueOptions = {"Theo giờ", "Theo ngày"};
+	        JComboBox kieuThueComboBox = new JComboBox<>(kieuThueOptions);
+	        kieuThueComboBox.setSelectedItem(kieuThue);
 	        // Tạo các trường nhập liệu với dữ liệu ban đầu
 	        tenPhongField = new JTextField(tenPhong);
 	        tenKhachHangField = new JTextField(tenKhachHang);
 	        sdtField = new JTextField(sdt);
-	        kieuThueField = new JTextField(kieuThue);
+	     // Trường nhập giá phòng
+	        giaPhongField = new JTextField();
 	        
 	        // Dùng JFormattedTextField hay JTextField để nhập ngày giờ (ở đây dùng JTextField cho đơn giản)
 	        formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -157,7 +167,7 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 	        panel.add(new JLabel("SĐT:"));
 	        panel.add(sdtField);
 	        panel.add(new JLabel("Kiểu thuê:"));
-	        panel.add(kieuThueField);
+	        panel.add(kieuThueComboBox);
 	        panel.add(new JLabel("Ngày giờ đặt (yyyy-MM-dd HH:mm):"));
 	        panel.add(ngayGioDatField);
 	        panel.add(new JLabel("Ngày giờ trả (yyyy-MM-dd HH:mm):"));
@@ -191,28 +201,32 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 			Object o= e.getSource();
 			if(o.equals(btnSearch)) {
 				timkiemPhong();
+				loadDataFromDatabase();
 			}
 			if(o.equals(btnReset)) {
 				reloadData();
 			}
 			if(o.equals(btnDelete)) {
 				deleteRow();
+				loadDataFromDatabase();
 			}
 		}
 
 		private void deleteRow() {
 			// TODO Auto-generated method stub
 			int selectedRow = table.getSelectedRow();
-
+			String ma=(String) tableModel.getValueAt(selectedRow, 0);
 		    if (selectedRow == -1) {
 		        JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng cần xóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
 		        return;
 		    }
 
-		    int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa dòng này?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
+		    int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn hủy phiếu đặt phòng này?", "Xác nhận hủy", JOptionPane.YES_NO_OPTION);
 		    if (confirm == JOptionPane.YES_OPTION) {
+		    	daoCTPDP.xoaCTPhieuDatPhongTheoMaPDP(ma);
+		    	daoPDP.xoaPhieuDatPhongTheoMaPDP(ma);
 		        tableModel.removeRow(selectedRow);
-		        JOptionPane.showMessageDialog(this, "Đã xóa dòng thành công!");
+		        JOptionPane.showMessageDialog(this, "Đã hủy phòng thành công!");
 		    }
 		}
 
@@ -261,10 +275,18 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 		            pdp.getPhietDP().getNhanvien().getTenNV(),
 		            pdp.getPhong().getTenPhong(),
 		            pdp.getPhietDP().getKhachhang().getTenKH(),
-		            pdp.getPhietDP().getKhachhang().getSoDT()
+		            pdp.getPhietDP().getKhachhang().getSoDT(),
+		            formatCurrencyVND(pdp.getGiaPhongtheoKieuThue()),
 		        };
 		        tableModel.addRow(row);
 		        originalData.add(row); // Lưu dữ liệu để reset/tìm kiếm
 		    }
+		    
+		}
+		private String formatCurrencyVND(double amount) {
+		    NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
+		    formatter.setMaximumFractionDigits(0); // Không hiển thị phần thập phân
+		    formatter.setRoundingMode(RoundingMode.HALF_UP); // Làm tròn lên hoặc xuống
+		    return formatter.format(amount) + " VND";
 		}
 }

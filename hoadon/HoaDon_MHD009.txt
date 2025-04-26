@@ -1,0 +1,13 @@
+======== HOÁ ĐƠN THANH TOÁN ========
+Mã hoá đơn: MHD009
+Tên khách hàng: Lê Xuân Thu
+SĐT: 0908828046
+Phòng: Phòng 307
+Ngày đặt: 2025-04-16T19:32
+Ngày trả: 2025-04-16T19:32:31.767
+Phương thức thanh toán: Tiền mặt
+------------------------------------
+DỊCH VỤ ĐÃ SỬ DỤNG:
+Tên dịch vụ               Số lượng   Đơn giá         Thành tiền     
+Không sử dụng             0          0 VND           0 VND          
+Bạc xỉu nóng/lạnh         10         40.000 VND      400.000 VND    

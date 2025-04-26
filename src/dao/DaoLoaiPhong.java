@@ -41,7 +41,7 @@ public class DaoLoaiPhong {
 		}
 		return dslPhong;
 	}
-	public List<LoaiPhong> getLoaiPhongTheoTen(String tenLPhong){
+	public LoaiPhong getLoaiPhongTheoTen(String tenLPhong){
 		try {
 			ConnectDB.getInstance();
 			Connection con= ConnectDB.getConnection();
@@ -55,13 +55,13 @@ public class DaoLoaiPhong {
 				Double giaPhongGio= rs.getDouble(4);
 				Double giaPhongNgay= rs.getDouble(5);
 				lphong= new LoaiPhong(maLPhong, tenlPhong, moTa, giaPhongGio, giaPhongNgay);
-				dslPhong.add(lphong);
+				
 			}
 		}catch (SQLException e) {
 			// TODO: handle exception
 			e.printStackTrace();
 		}
-		return dslPhong;
+		return lphong;
 	}
 	public LoaiPhong getLoaiPhongTheoMa(String ma){
 		try {
@@ -96,6 +96,7 @@ public class DaoLoaiPhong {
 			statement.setString(3, lphong.getMoTa());
 			statement.setDouble(4,lphong.getGiaPhongtheogio());
 			statement.setString(5, lphong.getTenLoaiP());
+			n=statement.executeUpdate();
 		}catch(SQLException E) {
 			E.printStackTrace();
 		}
@@ -133,7 +134,7 @@ public class DaoLoaiPhong {
 		}
 		return n>0;
 	}
-	public static String taomaLP(ArrayList<LoaiPhong> dslp2) {
+	public static String taomaLP(List<LoaiPhong> dslp2) {
         //return String.format("NV%03d", count);
 		ArrayList<String> dsma = new ArrayList<String>();
 		for (LoaiPhong lp: dslp2) {
@@ -142,7 +143,7 @@ public class DaoLoaiPhong {
 		String newID;
         int count = dsma.size() + 1;
 		do {
-			newID=String.format("NV%03d",count );
+			newID=String.format("MLP%03d",count );
 			count++;
 		}while(dsma.contains(newID));
 		return newID;

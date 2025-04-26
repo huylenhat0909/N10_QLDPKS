@@ -40,7 +40,7 @@ public class DaoKhachHang {
 		}
 		return dskh;
 	}
-	public List<KhachHang> getKhachHangtheoSDT(String sdtKH){
+	public KhachHang getKhachHangtheoSDT(String sdtKH){
 		try {
 			ConnectDB.getInstance();
 			Connection con = ConnectDB.getConnection();
@@ -54,13 +54,12 @@ public class DaoKhachHang {
 				String sdt= rs.getString(4);
 				String email=rs.getString(5);
 				kh= new KhachHang(maKH, tenKH, soCCCD, sdt, email);
-				dskh.add(kh);
 			}
 		} catch (SQLException e) {
 			//TODO: handle exception
 			e.printStackTrace();
 		}
-		return dskh;
+		return kh;
 	}
 	public KhachHang getKhachHangtheoma(String makh){
 		try {
@@ -86,7 +85,7 @@ public class DaoKhachHang {
 	public boolean themKhachHang(KhachHang kh) {
 		int n=0;
 		try {
-			ConnectDB.getInstance();
+			ConnectDB.getInstance().connect();
 			Connection con = ConnectDB.getConnection();
 			
 			String sql = "INSERT INTO KhachHang ([maKH], [tenKH], [CCCD], [sdt], [email] ) VALUES(?,?,?,?,?)";
