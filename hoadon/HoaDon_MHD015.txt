@@ -1,0 +1,18 @@
+======== HOÁ ĐƠN THANH TOÁN ========
+Mã hoá đơn: MHD015
+Tên khách hàng: Trần Thị Huế
+SĐT: 0900900901
+Phòng: Phòng 203
+Ngày đặt: 2025-04-28T19:30
+Ngày trả: 2025-04-28T19:30:23.933
+Phương thức thanh toán: Tiền mặt
+------------------------------------
+DỊCH VỤ ĐÃ SỬ DỤNG:
+Tên dịch vụ               Số lượng   Đơn giá         Thành tiền     
+Không sử dụng             0          0 VND           0 VND          
+------------------------------------
+TỔNG TIỀN DỊCH VỤ: 0 VND
+TỔNG TIỀN : Tổng tiền: 60.000 VND
+TỔNG TIỀN SAU KHI ÁP DỤNG KHUYẾN MÃI : 0 VND
+Ngày thanh toán: 2025-04-29 10:15
+====================================

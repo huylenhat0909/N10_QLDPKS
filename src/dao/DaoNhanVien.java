@@ -46,7 +46,7 @@ public class DaoNhanVien {
 		}
 		return dsnv;
 	}
-	public List<NhanVien> getNhanVienTheoTen(String tenNV){
+	public NhanVien getNhanVienTheoTen(String tenNV){
 		try {
 			ConnectDB.getInstance();
 			Connection con = ConnectDB.getConnection();
@@ -63,13 +63,13 @@ public class DaoNhanVien {
 				String email= rs.getString(7);
 				String chucVu= rs.getString(8);
 				nv= new NhanVien(maNV, tennv, soCCCD, ngaySinh, gioiTinh, sdt, email, chucVu);
-				dsnv.add(nv);
+				
 			}
 		} catch (SQLException e) {
 			//TODO: handle exception
 			e.printStackTrace();
 		}
-		return dsnv;
+		return nv;
 	}
 	public NhanVien getNhanVienTheoMa(String maNV){
 		try {

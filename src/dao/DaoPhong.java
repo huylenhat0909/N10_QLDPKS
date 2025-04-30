@@ -84,7 +84,7 @@ public class DaoPhong {
 	}
 	public Phong getPhongtheoMa(String ma) {
 		try {
-			ConnectDB.getInstance();
+			ConnectDB.getInstance().connect();
 			Connection con= ConnectDB.getConnection();
 			String sql = "Select * from Phong where maPhong like N'%"+ma+"%'";
 			Statement statement = con.createStatement();

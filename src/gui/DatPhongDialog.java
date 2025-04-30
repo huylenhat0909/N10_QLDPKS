@@ -6,7 +6,6 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -14,8 +13,9 @@ import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
-
+import java.text.*;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -111,7 +111,7 @@ public class DatPhongDialog extends JDialog {
         tfSDT = new JTextField();
         tfEmail = new JTextField();
         tfCCCD= new JTextField();
-        cbKieuThue = new JComboBox<>();
+        cbKieuThue = new JComboBox<String>();
         if (LocalDateTime.now().isBefore(localDateTime)) {
             cbKieuThue.removeAllItems();
             cbKieuThue.addItem("Theo ngày");
@@ -160,12 +160,11 @@ public class DatPhongDialog extends JDialog {
         spinnerGioTra.setValue(new Date()); // Giờ hiện tại
 
         // Đồng bộ logic theo đúng kiểu text đã gán vào JComboBox
-        String kieuThueHienTai = (String) cbKieuThue.getSelectedItem();
+        String kieuThueHienTai = cbKieuThue.getSelectedItem().toString();
         dateTra.setEnabled("Theo ngày".equals(kieuThueHienTai));
         spinnerGioTra.setEnabled(!"Theo ngày".equals(kieuThueHienTai)); // Giờ trả chỉ khi thuê theo giờ
 
-        DecimalFormat formatter = new DecimalFormat("#,### VNĐ");
-
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
         // Gắn listener để xử lý thay đổi kiểu thuê
         cbKieuThue.addActionListener(e -> {
             String kieu = (String) cbKieuThue.getSelectedItem();
@@ -177,11 +176,11 @@ public class DatPhongDialog extends JDialog {
             spinnerGioTra.setEnabled(false); // luôn mặc định 14:00
             dateTra.setEnabled(isTheoNgay);
             if ("Theo ngày".equals(kieu)) {
-                lblGiaPhong.setText(formatter.format(
+                lblGiaPhong.setText(nf.format(
                         phong.getGiaPhong() * phong.getLoaiPhong().getGiaPhongtheongay()
                 ) + " VNĐ/ngày");
             } else {
-                lblGiaPhong.setText(formatter.format(
+                lblGiaPhong.setText(nf.format(
                         phong.getGiaPhong() * phong.getLoaiPhong().getGiaPhongtheogio()
                 ) + " VNĐ/giờ");
             }
@@ -298,7 +297,9 @@ public class DatPhongDialog extends JDialog {
 
                         if (themPDP && themCTPDP) {
                         	DaoPhong daophong = new DaoPhong();
-                            daophong.capnhatttPhong(trangThai, phong.getMaPhong());
+                        	if(phong.getTrangThai().equals("Trống")||phong.getTrangThai().equals("Đã đặt") ) {
+                        		daophong.capnhatttPhong(trangThai, phong.getMaPhong());
+                        	}
                             JOptionPane.showMessageDialog(this, "Đặt phòng thành công!");
                             guisdks.capNhatTrangThaiPhong();
                             dispose();
@@ -319,7 +320,9 @@ public class DatPhongDialog extends JDialog {
 
                     if (themhd && themCThd) {
                     	DaoPhong daophong = new DaoPhong();
-                        daophong.capnhatttPhong(trangThai, phong.getMaPhong());
+                    	if(phong.getTrangThai().equals("Trống")||phong.getTrangThai().equals("Đã đặt") ) {
+                    		daophong.capnhatttPhong(trangThai, phong.getMaPhong());
+                    	}
                         JOptionPane.showMessageDialog(this, "Nhận phòng thành công!");
                         guisdks.capNhatTrangThaiPhong();
                         dispose();

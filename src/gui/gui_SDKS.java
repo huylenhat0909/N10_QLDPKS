@@ -17,6 +17,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
@@ -224,20 +225,20 @@ public class gui_SDKS extends JPanel {
 		@Override
         public void actionPerformed(ActionEvent e) {
             JButton clickedButton = (JButton) e.getSource();
-			LocalDateTime localDate = LocalDateTime.now();
+			LocalDateTime giohientai = LocalDateTime.now();
 			Date date = dateChooser.getDate();
 			//Set ngày giờ trên datachoose
-			LocalDateTime localDateTime = date.toInstant()
+			LocalDateTime giotrendatechooser = date.toInstant()
 			        .atZone(ZoneId.systemDefault())
 			        .toLocalDate()
-			        .atTime(23, 0); // đặt giờ mặc định là 14:00
+			        .atTime(LocalTime.now()); 
 			
             String maPhong = (String) clickedButton.getClientProperty("maPhong");
             String tenPhong = (String) clickedButton.getClientProperty("tenPhong");
             phong=daophong.getPhongtheoTen(tenPhong);
             daocthd= new DaoChiTietHoaDon();
             ChiTietHoaDon cthd = daocthd.getCTHDtheophongtt(maPhong,false);
-            ChiTietPhieuDatPhong ctpdp= daoctpd.getCTPDPtheoMaPhongDay(maPhong, localDate.toLocalDate());
+            ChiTietPhieuDatPhong ctpdp= daoctpd.getCTPDPtheoMaPhongDay(maPhong, giohientai.toLocalDate());
             boolean coCTHD = (cthd != null && cthd.getHD() != null && cthd.getNgayLapHD() != null);
             boolean coCTPDP = (ctpdp != null && ctpdp.getGioDatPhong() != null && ctpdp.getGioTraPhong() != null);
 			/*
@@ -253,12 +254,10 @@ public class gui_SDKS extends JPanel {
 			 * NhanPhongDialog dialog = new NhanPhongDialog(null, phong,nv, selectedDate );
 			 * dialog.setVisible(true); capNhatTrangThaiPhong(); }
 			 */
-         // Tạo mốc 12 giờ trưa ngày hôm sau
-            
             if (coCTHD) {
-            	LocalDateTime gioTruaNgayHomSau = cthd.getNgayLapHD().toLocalDate().plusDays(1).atTime(6, 0);
+            	LocalDateTime gioTruaNgayHomSau = cthd.getNgayLapHD().toLocalDate().plusDays(1).atTime(14, 0);
                 LocalDateTime thoiGianLap = cthd.getNgayLapHD();
-                if (localDateTime.isAfter(thoiGianLap)&& localDateTime.isBefore(gioTruaNgayHomSau)) {
+                if ((giohientai.isEqual(thoiGianLap) || giohientai.isAfter(thoiGianLap))&& giohientai.isBefore(gioTruaNgayHomSau)) {
                     // Hiện đang sử dụng → Thanh toán
                     ThanhToanDialog dialog = new ThanhToanDialog(null, maPhong,
                             cthd.getHD().getKhachHang().getSoDT(),
@@ -267,7 +266,7 @@ public class gui_SDKS extends JPanel {
                     capNhatTrangThaiPhong();
                     return;
                 }else {
-                	DatPhongDialog dialog = new DatPhongDialog(null, phong, nv,localDateTime );
+                	DatPhongDialog dialog = new DatPhongDialog(null, phong, nv,giotrendatechooser );
                     dialog.setVisible(true);
                     capNhatTrangThaiPhong();
                     return;
@@ -278,8 +277,8 @@ public class gui_SDKS extends JPanel {
             if (!coCTHD && coCTPDP) {
                 LocalDateTime ngayNhan = ctpdp.getGioDatPhong();
                 LocalDateTime ngayTra = ctpdp.getGioTraPhong();
-                if ((localDate.isEqual(ngayNhan) || localDate.isAfter(ngayNhan)) &&
-                    localDate.isBefore(ngayTra)) {
+                if ((giotrendatechooser.isEqual(ngayNhan) || giotrendatechooser.isAfter(ngayNhan)) &&
+                		giotrendatechooser.isBefore(ngayTra)) {
                     // Trong khoảng đặt phòng → Nhận phòng
                 	Date date1 = dateChooser.getDate();
                 	LocalDate selectedDate = date1.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -291,10 +290,10 @@ public class gui_SDKS extends JPanel {
             }
             
          // Không có hóa đơn và không có phiếu đặt → cho phép đặt mới
-            DatPhongDialog dialog = new DatPhongDialog(null, phong, nv,localDateTime);
+            DatPhongDialog dialog = new DatPhongDialog(null, phong, nv,giotrendatechooser);
             dialog.setVisible(true);
             capNhatTrangThaiPhong();
-            
+            System.out.println(coCTPDP);
     }
     }
     /**

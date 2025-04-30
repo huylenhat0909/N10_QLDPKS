@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/sqljdbc4.jar"/>
-	<classpathentry kind="lib" path="lib/jcalendar-1.3.2.jar">
+	<classpathentry kind="lib" path="C:/Users/ADMIN/LeNhatHuy_22714521/N10_QuanLyDPKS/lib/jfreechart-1.0.19.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ADMIN/LeNhatHuy_22714521/N10_QuanLyDPKS/lib/jcommon-1.0.23.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ADMIN/LeNhatHuy_22714521/N10_QuanLyDPKS/lib/jcalendar-1.3.2.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk-17.0.11">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>

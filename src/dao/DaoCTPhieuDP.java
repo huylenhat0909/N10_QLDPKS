@@ -59,6 +59,36 @@ public class DaoCTPhieuDP {
 		}
 		return dsctpdp;
 	}
+	public List<ChiTietPhieuDatPhong> getDatabaseThueNgay(){
+		try {
+			ConnectDB.getInstance().connect();
+			Connection con = ConnectDB.getConnection();
+			String sql = "Select * from CTPhieuDatPhong Where kieuThue='True'";
+			Statement statement = con.createStatement();
+			ResultSet rs = statement.executeQuery(sql);
+			while(rs.next()) {
+				String maPhieuDatPhong= rs.getString(1);
+				String maPhong= rs.getString(2);
+				Timestamp time= rs.getTimestamp(3);
+				LocalDateTime gionhanphong =time.toLocalDateTime();
+				Timestamp time_1= rs.getTimestamp(4);
+				LocalDateTime giotraphong =time_1.toLocalDateTime();
+				Boolean kieuThue= rs.getBoolean(5);
+				daophong=new DaoPhong();
+				phong=daophong.getPhongtheoMa(maPhong);
+				daopdp=new DaoPhieuDP();
+				pdp=daopdp.getPDPtheoMa(maPhieuDatPhong);
+				ctpdp=new ChiTietPhieuDatPhong(pdp, phong, gionhanphong, giotraphong, kieuThue);
+				dsctpdp.add(ctpdp);
+			}
+			statement.close();
+			con.close();
+		} catch (SQLException e) {
+			//TODO: handle exception
+			e.printStackTrace();
+		}
+		return dsctpdp;
+	}
 	public boolean themCTPhieuDatPhong(ChiTietPhieuDatPhong ctpdp) {
 		int n =0;
 		try {
@@ -89,6 +119,37 @@ public class DaoCTPhieuDP {
 			ConnectDB.getInstance().connect();
 			Connection con= ConnectDB.getConnection();
 			String sql = "Select * from CTPhieuDatPhong where maPhong like N'%"+ma+"%'";
+			Statement statement = con.createStatement();
+			ResultSet rs = statement.executeQuery(sql);
+			while(rs.next()) {
+				String maPhieuDatPhong= rs.getString(1);
+				String maPhong= rs.getString(2);
+				Timestamp time= rs.getTimestamp(3);
+				LocalDateTime gionhanphong =time.toLocalDateTime();
+				Timestamp time_1= rs.getTimestamp(4);
+				LocalDateTime giotraphong =time_1.toLocalDateTime();
+				Boolean kieuThue= rs.getBoolean(5);
+				daophong=new DaoPhong();
+				phong=daophong.getPhongtheoMa(maPhong);
+				daopdp=new DaoPhieuDP();
+				pdp=daopdp.getPDPtheoMa(maPhieuDatPhong);
+				ctpdp=new ChiTietPhieuDatPhong(pdp, phong, gionhanphong, giotraphong, kieuThue);
+				
+			}
+			rs.close();
+			statement.close();
+			con.close();
+		}catch (SQLException e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return ctpdp;
+	}
+	public ChiTietPhieuDatPhong getCTPDPtheoMaPDP(String ma) {
+		try {
+			ConnectDB.getInstance().connect();
+			Connection con= ConnectDB.getConnection();
+			String sql = "Select * from CTPhieuDatPhong where maPhieuDatPhong like N'%"+ma+"%'";
 			Statement statement = con.createStatement();
 			ResultSet rs = statement.executeQuery(sql);
 			while(rs.next()) {
@@ -204,4 +265,36 @@ public class DaoCTPhieuDP {
 	    }
 	    return n > 0;
 	}
+	public boolean capNhatCTPhieuDatPhong(ChiTietPhieuDatPhong ctpdp) {
+	    int n = 0;
+	    try {
+	        ConnectDB.getInstance().connect();
+	        Connection con = ConnectDB.getConnection();
+	        String sql = "UPDATE CTPhieuDatPhong " +
+	                     "SET [gioDatPhong] = ?, [gioTraPhong] = ?, [kieuThue] = ?, [giaPhongtheoKieuThue] = ? " +
+	                     "WHERE [maPhieuDatPhong] = ? AND [maPhong] = ?";  // Điều kiện để xác định bản ghi cần cập nhật
+
+	        PreparedStatement statement = con.prepareStatement(sql);
+	        statement.setTimestamp(1, Timestamp.valueOf(ctpdp.getGioDatPhong()));
+
+	        if (ctpdp.getGioTraPhong() != null) {
+	            statement.setTimestamp(2, Timestamp.valueOf(ctpdp.getGioTraPhong()));
+	        } else {
+	            statement.setNull(2, java.sql.Types.TIMESTAMP);
+	        }
+
+	        statement.setBoolean(3, ctpdp.getKieuThue());
+	        statement.setDouble(4, ctpdp.getGiaPhongtheoKieuThue());
+	        statement.setString(5, ctpdp.getPhietDP().getMaPDP());
+	        statement.setString(6, ctpdp.getPhong().getMaPhong());
+
+	        n = statement.executeUpdate();
+	        statement.close();
+	        con.close();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return n > 0;  // Trả về true nếu cập nhật thành công
+	}
+
 }

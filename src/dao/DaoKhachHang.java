@@ -42,7 +42,7 @@ public class DaoKhachHang {
 	}
 	public KhachHang getKhachHangtheoSDT(String sdtKH){
 		try {
-			ConnectDB.getInstance();
+			ConnectDB.getInstance().connect();
 			Connection con = ConnectDB.getConnection();
 			String sql = "Select * from KhachHang where sdt like N'%"+sdtKH+"%'";
 			Statement statement = con.createStatement();

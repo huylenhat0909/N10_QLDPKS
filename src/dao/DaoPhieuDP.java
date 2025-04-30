@@ -116,4 +116,21 @@ public class DaoPhieuDP {
 	    }
 	    return n > 0;
 	}
+	public boolean capNhatPhieuDatPhong(PhieuDatPhong pdp) {
+	    int n = 0;
+	    try {
+	        ConnectDB.getInstance().connect();
+	        Connection con = ConnectDB.getConnection();
+	        String sql = "UPDATE PhieuDatPhong SET maNhanVien = ?, maKhachHang = ? WHERE maPhieuDatPhong = ?";
+	        PreparedStatement statement = con.prepareStatement(sql);
+	        statement.setString(1, pdp.getNhanvien().getMaNV());
+	        statement.setString(2, pdp.getKhachhang().getMaKH());
+	        statement.setString(3, pdp.getMaPDP());
+	        n = statement.executeUpdate();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return n > 0;
+	}
+
 }
