@@ -6,9 +6,13 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.math.RoundingMode;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.NumberFormat;
 import java.util.HashMap;
@@ -25,8 +29,13 @@ import connectDB.ConnectDB;
 
 public class gui_DoanhThu extends JPanel {
 
-    public gui_DoanhThu() {
+    private double tongdvthang;
+	private double tongphongthang;
+	private ChartPanel chartPanel;
+	private JPanel panel_thang;
+	public gui_DoanhThu() {
     	setLayout(new BorderLayout());
+    	Font font = new Font("Arial",Font.BOLD, 16);
     	Map<String, Double> ds_tiendv = this.tongDTDichVu();
     	Map<String, Double> ds_tienPhong = this.tongDTPhong();
     	Double tongdv=0.0;
@@ -51,9 +60,11 @@ public class gui_DoanhThu extends JPanel {
     	String phongStr = String.format("Giá phòng: "+ nf.format(tongphong) +" VNĐ");
 
     	JLabel lblTong = new JLabel(tongStr, SwingConstants.CENTER);
+    	lblTong.setFont(font);
     	JLabel lblDichVu = new JLabel(dvStr, SwingConstants.CENTER);
+    	lblDichVu.setFont(font);
     	JLabel lblGiaPhong = new JLabel(phongStr, SwingConstants.CENTER);
-
+    	lblGiaPhong.setFont(font);
     	// Thêm label vào panel
     	infoPanel.add(lblTong);
     	infoPanel.add(lblDichVu);
@@ -62,14 +73,14 @@ public class gui_DoanhThu extends JPanel {
         add(infoPanel, BorderLayout.NORTH);
         
      // ========== 0. Panel chọn tháng/năm ==========
-        JPanel panel_thang= new JPanel(new BorderLayout());
+        panel_thang= new JPanel(new BorderLayout());
         JPanel filterPanel = new JPanel();
 
         JComboBox<Integer> cbThang = new JComboBox<>();
         for (int i = 1; i <= 12; i++) cbThang.addItem(i);
 
         JComboBox<Integer> cbNam = new JComboBox<>();
-        for (int i = 2022; i <= 2025; i++) cbNam.addItem(i);
+        for (int i = 2024; i <= 2025; i++) cbNam.addItem(i);
 
         JButton btnXem = new JButton("Xem Doanh Thu");
         filterPanel.add(new JLabel("Tháng:"));
@@ -88,6 +99,9 @@ public class gui_DoanhThu extends JPanel {
         JLabel lblTongthang = new JLabel("Tổng: 0 VNĐ", SwingConstants.CENTER);
         JLabel lblDichVuthang = new JLabel("Dịch vụ: 0 VNĐ", SwingConstants.CENTER);
         JLabel lblGiaPhongthang = new JLabel("Giá phòng: 0 VNĐ", SwingConstants.CENTER);
+        lblTongthang.setFont(font);
+        lblDichVuthang.setFont(font);
+        lblGiaPhongthang.setFont(font);
         infoPanel_theothang.add(lblTongthang);
         infoPanel_theothang.add(lblDichVuthang);
         infoPanel_theothang.add(lblGiaPhongthang);
@@ -98,43 +112,165 @@ public class gui_DoanhThu extends JPanel {
             int nam = (int) cbNam.getSelectedItem();
 
             // Gọi phương thức để lấy dữ liệu từ SQL
-            double tongTatCathang = 0.0; //layTongDoanhThu(thang, nam);
-            double tongdvthang = 0.0; //layTongDichVu(thang, nam);
-            double tongphongthang = 0.0; //layTongGiaPhong(thang, nam);
-
-            lblTong.setText("Tổng: " + nf.format(tongTatCathang) + " VNĐ");
-            lblDichVu.setText("Dịch vụ: " + nf.format(tongdvthang) + " VNĐ");
-            lblGiaPhong.setText("Giá phòng: " + nf.format(tongphongthang) + " VNĐ");
+            Map<String, Double> dsdvthang = layDsDichVu(thang, nam);
+            Map<String, Double> dsphongthang = layDsGiaPhong(thang, nam);
+            tongdvthang=0.0;
+        	tongphongthang=0.0;
+        	for (Double tien: dsdvthang.values()) {
+        		tongdvthang+=tien;
+        	}
+        	for (Double tien: dsphongthang.values()) {
+        		tongphongthang+=tien;
+        	}
+            Double tongTatCathang = tongdvthang+tongphongthang; //layTongDoanhThu(thang, nam);
+            lblTongthang.setText("Tổng: " + nf.format(tongTatCathang) + " VNĐ");
+            lblDichVuthang.setText("Dịch vụ: " + nf.format(tongdvthang) + " VNĐ");
+            lblGiaPhongthang.setText("Giá phòng: " + nf.format(tongphongthang) + " VNĐ");
         });
         
         
         panel_thang.add(infoPanel_theothang,BorderLayout.CENTER);
         
-        // ========== 2. Biểu đồ Line Chart ==========
+     // ========== Biểu đồ cột 2 dữ liệu: Phòng và Dịch vụ ==========
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        dataset.addValue(100, "Doanh thu", "Tháng 1");
-        dataset.addValue(120, "Doanh thu", "Tháng 2");
-        dataset.addValue(90, "Doanh thu", "Tháng 3");
-        dataset.addValue(150, "Doanh thu", "Tháng 4");
+        int nam = (int) cbNam.getSelectedItem();
 
-        JFreeChart chart = ChartFactory.createLineChart(
-            "Biểu đồ Doanh Thu Theo Tháng",
+        for (int i = 1; i <= 12; i++) {
+        	Map<String, Double> dsdvthang = layDsDichVu(i, 2025);
+            Map<String, Double> dsphongthang = layDsGiaPhong(i, 2025);
+            Double tongdvthang=0.0;
+        	Double tongphongthang=0.0;
+        	for (Double tien: dsdvthang.values()) {
+        		tongdvthang+=tien;
+        	}
+        	for (Double tien: dsphongthang.values()) {
+        		tongphongthang+=tien;
+        	}
+            dataset.addValue(tongphongthang, "Phòng", "Tháng " + i);
+            dataset.addValue(tongdvthang, "Dịch vụ", "Tháng " + i);
+        }
+
+        // Tạo biểu đồ cột
+        JFreeChart chart = ChartFactory.createBarChart(
+            "Biểu đồ Doanh Thu Phòng và Dịch Vụ Theo Tháng",
             "Tháng",
             "Doanh thu (triệu VNĐ)",
             dataset,
             PlotOrientation.VERTICAL,
-            false, true, false
+            true, true, false
         );
 
-        ChartPanel chartPanel = new ChartPanel(chart);
+        // Hiển thị biểu đồ trong ChartPanel
+        chartPanel = new ChartPanel(chart);
         chartPanel.setPreferredSize(new Dimension(WIDTH, 600));
         panel_thang.add(chartPanel, BorderLayout.SOUTH);
-        add(panel_thang,BorderLayout.CENTER);
+        add(panel_thang, BorderLayout.CENTER);
+        cbNam.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    int nam = (int) cbNam.getSelectedItem();
+                    veBieuDoDoanhThu(nam);  // gọi hàm vẽ lại biểu đồ
+                }
+            }
+        });
     }
     
+	private void veBieuDoDoanhThu(int nam) {
+	    // Tạo dataset mới
+	    DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+	    for (int i = 1; i <= 12; i++) {
+	        Map<String, Double> dsdvthang = layDsDichVu(i, nam);
+	        Map<String, Double> dsphongthang = layDsGiaPhong(i, nam);
+
+	        double tongdvthang = dsdvthang.values().stream().mapToDouble(Double::doubleValue).sum();
+	        double tongphongthang = dsphongthang.values().stream().mapToDouble(Double::doubleValue).sum();
+
+	        dataset.addValue(tongphongthang, "Phòng", "Tháng " + i);
+	        dataset.addValue(tongdvthang, "Dịch vụ", "Tháng " + i);
+	    }
+
+	    // Tạo biểu đồ mới
+	    JFreeChart chart = ChartFactory.createBarChart(
+	        "Biểu đồ Doanh Thu Phòng và Dịch Vụ Theo Tháng",
+	        "Tháng",
+	        "Doanh thu (triệu VNĐ)",
+	        dataset,
+	        PlotOrientation.VERTICAL,
+	        true, true, false
+	    );
+
+	    // Nếu chartPanel đã tồn tại, gỡ bỏ khỏi panel_thang
+	    if (chartPanel != null) {
+	        panel_thang.remove(chartPanel);
+	    }
+
+	    // Tạo và thêm chartPanel mới
+	    chartPanel = new ChartPanel(chart);
+	    chartPanel.setPreferredSize(new Dimension(WIDTH, 600));
+	    panel_thang.add(chartPanel, BorderLayout.SOUTH);
+
+	    panel_thang.revalidate();
+	    panel_thang.repaint();
+	}
+
     
-    
-    public  Map<String, Double> tongDTDichVu() {
+    private Map<String, Double> layDsGiaPhong(int thang, int nam) {
+    	Map<String, Double> result = new HashMap<>();
+
+    	try  {
+	    	ConnectDB.getInstance().connect();
+			Connection con= ConnectDB.getConnection();
+			String sql =  "SELECT ctpdp.giaPhongtheoKieuThue, ctpdp.maPhong FROM CTPhieuDatPhong ctpdp "
+					+ "WHERE MONTH(ctpdp.gioDatPhong) = ? AND YEAR(ctpdp.gioDatPhong) =?";
+			PreparedStatement stmt = con.prepareStatement(sql);
+	        stmt.setInt(1, thang);
+	        stmt.setInt(2, nam);
+
+	        ResultSet rs = stmt.executeQuery();
+	        while (rs.next()) {
+                String maPhong = rs.getString("maPhong");
+                double tienPhong = rs.getDouble("giaPhongtheoKieuThue");
+                result.put(maPhong, tienPhong);
+            }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+    	return result;
+	}
+
+
+
+	private Map<String, Double> layDsDichVu(int thang, int nam) {
+		Map<String, Double> dsGiaPhong = new HashMap<>();
+	    try {
+	    	ConnectDB.getInstance().connect();
+			Connection con= ConnectDB.getConnection();
+	        String sql = 
+	            "SELECT c.maHoaDon, SUM( (d.giaTien*c.soLuongDV)) AS tongTien  " +
+	            "FROM ChiTietHoaDon c " +
+	            "JOIN DichVu d ON c.maDichVu = d.maDichVu " +
+	            "WHERE MONTH(c.ngayLapHoaDon) = ? AND YEAR(c.ngayLapHoaDon) =?  " +
+	            "GROUP BY c.maHoaDon";
+	        PreparedStatement stmt = con.prepareStatement(sql);
+	        stmt.setInt(1, thang);
+	        stmt.setInt(2, nam);
+	        ResultSet rs = stmt.executeQuery();
+	        while (rs.next()) {
+	            String maHD = rs.getString("maHoaDon");
+	            Double tongTien = rs.getDouble("tongTien");
+	            dsGiaPhong.put(maHD, tongTien);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();   
+	}
+	    return dsGiaPhong;
+}
+
+
+
+	public  Map<String, Double> tongDTDichVu() {
     	Map<String, Double> result = new HashMap<>();
 
     	try  {
