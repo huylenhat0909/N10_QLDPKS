@@ -92,7 +92,7 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 	        txtSearch.setFont(font);
 	        btnSearch = new JButton("Tìm");
 	        btnReset = new JButton("Tải lại");
-	        btnDelete= new JButton("Xóa");
+	        btnDelete= new JButton("Hủy Phòng");
 	        btnSearch.setFont(font);
 	        btnReset.setFont(font);
 	        btnDelete.setFont(font);
@@ -149,136 +149,145 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 	     * @param row chỉ số dòng trong bảng
 	     */
 	    private void openUpdateDialog(int row) {
-	    	// Lấy thông tin hiện tại từ bảng
-	    	String tenPhong = (String) tableModel.getValueAt(row, 2);
-	    	String tenKhachHang = (String) tableModel.getValueAt(row, 3);
-	    	String sdt = (String) tableModel.getValueAt(row, 4);
-	    	String kieuThue = (String) tableModel.getValueAt(row, 3);
-	    	String giaPhong = tableModel.getValueAt(row, 5).toString();
-	    	String maPhieuDP= tableModel.getValueAt(row, 0).toString();
-	    	String tenNhanVien= tableModel.getValueAt(row, 1).toString();
-	    	DaoKhachHang daokh= new DaoKhachHang();
-	    	KhachHang kh= daokh.getKhachHangtheoSDT(sdt);
-	    	DaoNhanVien daonv= new DaoNhanVien();
-	    	NhanVien nv= daonv.getNhanVienTheoTen(tenNhanVien);
-	    	// Tạo các trường nhập liệu
-	    	tenPhongField = new JTextField(tenPhong);
-	    	tenKhachHangField = new JTextField(tenKhachHang);
-	    	sdtField = new JTextField(sdt);
-	    	giaPhongField = new JTextField(giaPhong);
-	    	DaoCTPhieuDP daoctpdp= new DaoCTPhieuDP();
-	    	ChiTietPhieuDatPhong ctpdp= daoctpdp.getCTPDPtheoMaPDP(maPhieuDP);
-	    	LocalDateTime ngayNhan=ctpdp.getGioDatPhong();
-	    	LocalDateTime ngayTra=ctpdp.getGioTraPhong();
-	    	// ComboBox kiểu thuê
-	    	String[] kieuThueOptions =  {"Theo ngày"};
-	    	JComboBox<String> kieuThueComboBox = new JComboBox<>(kieuThueOptions);
-	    	kieuThueComboBox.setSelectedItem(kieuThue);
+	        // Lấy thông tin hiện tại từ bảng
+	        String tenPhong = (String) tableModel.getValueAt(row, 2);
+	        String tenKhachHang = (String) tableModel.getValueAt(row, 3);
+	        String sdt = (String) tableModel.getValueAt(row, 4);
+	        String kieuThue = (String) tableModel.getValueAt(row, 3); // Cẩn thận chỗ này, nên sửa nếu cần
+	        String giaPhong = tableModel.getValueAt(row, 5).toString();
+	        String maPhieuDP = tableModel.getValueAt(row, 0).toString();
+	        String tenNhanVien = tableModel.getValueAt(row, 1).toString();
 
-	    	// DateChooser ngày nhận và ngày trả
-	    	dateNhan = new JDateChooser();
-	    	dateTra = new JDateChooser();
+	        DaoKhachHang daokh = new DaoKhachHang();
+	        KhachHang kh = daokh.getKhachHangtheoSDT(sdt);
+	        DaoNhanVien daonv = new DaoNhanVien();
+	        NhanVien nv = daonv.getNhanVienTheoTen(tenNhanVien);
 
-	    	// Gán giá trị ngày vào JDateChooser
-	    	dateNhan.setDate(Date.from(ngayNhan.atZone(ZoneId.systemDefault()).toInstant()));
-	    	dateTra.setDate(Date.from(ngayTra.atZone(ZoneId.systemDefault()).toInstant()));
+	        // Các trường nhập liệu
+	        tenPhongField = new JTextField(tenPhong);
+	        tenKhachHangField = new JTextField(tenKhachHang);
+	        sdtField = new JTextField(sdt);
+	        giaPhongField = new JTextField(giaPhong);
 
-	    	// Gán giá trị giờ vào JSpinner
-	    	// Spinner cho ngày nhận
-	    	// Spinner cho ngày nhận
-	    	Calendar calendarNhan = Calendar.getInstance();
-	    	calendarNhan.set(Calendar.YEAR, ngayNhan.getYear());
-	    	calendarNhan.set(Calendar.MONTH, ngayNhan.getMonthValue() - 1); // Calendar.MONTH bắt đầu từ 0 (JANUARY=0)
-	    	calendarNhan.set(Calendar.DAY_OF_MONTH, ngayNhan.getDayOfMonth());
-	    	calendarNhan.set(Calendar.HOUR_OF_DAY, ngayNhan.getHour());
-	    	calendarNhan.set(Calendar.MINUTE, ngayNhan.getMinute());
-	    	calendarNhan.set(Calendar.SECOND, 0);
-	    	calendarNhan.set(Calendar.MILLISECOND, 0);
+	        // Load chi tiết phiếu
+	        DaoCTPhieuDP daoctpdp = new DaoCTPhieuDP();
+	        ChiTietPhieuDatPhong ctpdp = daoctpdp.getCTPDPtheoMaPDP(maPhieuDP);
+	        LocalDateTime ngayNhan = ctpdp.getGioDatPhong();
+	        LocalDateTime ngayTra = ctpdp.getGioTraPhong();
 
-	    	JSpinner spinnerGioNhan = new JSpinner(new SpinnerDateModel());
-	    	spinnerGioNhan.setValue(calendarNhan.getTime());
+	        // Kiểu thuê
+	        String[] kieuThueOptions = {"Theo ngày"};
+	        JComboBox<String> kieuThueComboBox = new JComboBox<>(kieuThueOptions);
+	        kieuThueComboBox.setSelectedItem(kieuThue);
 
-	    	// Spinner cho ngày trả
-	    	Calendar calendarTra = Calendar.getInstance();
-	    	calendarTra.set(Calendar.YEAR, ngayTra.getYear());
-	    	calendarTra.set(Calendar.MONTH, ngayTra.getMonthValue() - 1);
-	    	calendarTra.set(Calendar.DAY_OF_MONTH, ngayTra.getDayOfMonth());
-	    	calendarTra.set(Calendar.HOUR_OF_DAY, ngayTra.getHour());
-	    	calendarTra.set(Calendar.MINUTE, ngayTra.getMinute());
-	    	calendarTra.set(Calendar.SECOND, 0);
-	    	calendarTra.set(Calendar.MILLISECOND, 0);
+	        // DateChooser
+	        dateNhan = new JDateChooser();
+	        dateTra = new JDateChooser();
+	        dateNhan.setDate(Date.from(ngayNhan.atZone(ZoneId.systemDefault()).toInstant()));
+	        dateTra.setDate(Date.from(ngayTra.atZone(ZoneId.systemDefault()).toInstant()));
 
-	    	JSpinner spinnerGioTra = new JSpinner(new SpinnerDateModel());
-	    	spinnerGioTra.setValue(calendarTra.getTime());
+	        // Spinner giờ nhận
+	        SpinnerDateModel gioNhanModel = new SpinnerDateModel();
+	        JSpinner spinnerGioNhan = new JSpinner(gioNhanModel);
+	        spinnerGioNhan.setEditor(new JSpinner.DateEditor(spinnerGioNhan, "HH:mm"));
+	        spinnerGioNhan.setValue(Date.from(ngayNhan.atZone(ZoneId.systemDefault()).toInstant()));
 
+	        // Spinner giờ trả
+	        SpinnerDateModel gioTraModel = new SpinnerDateModel();
+	        JSpinner spinnerGioTra = new JSpinner(gioTraModel);
+	        spinnerGioTra.setEditor(new JSpinner.DateEditor(spinnerGioTra, "HH:mm"));
+	        spinnerGioTra.setValue(Date.from(ngayTra.atZone(ZoneId.systemDefault()).toInstant()));
 
-	    	// ====== BẮT ĐẦU GHÉP PANEL ======
+	        // Panel thời gian đặt phòng
+	        JPanel panelThoiGian = new JPanel(new GridLayout(4, 2, 5, 5));
+	        panelThoiGian.setBorder(BorderFactory.createTitledBorder("Thời gian đặt phòng"));
+	        panelThoiGian.add(new JLabel("Ngày nhận:"));
+	        panelThoiGian.add(dateNhan);
+	        panelThoiGian.add(new JLabel("Giờ nhận:"));
+	        panelThoiGian.add(spinnerGioNhan);
+	        panelThoiGian.add(new JLabel("Ngày trả:"));
+	        panelThoiGian.add(dateTra);
+	        panelThoiGian.add(new JLabel("Giờ trả:"));
+	        panelThoiGian.add(spinnerGioTra);
 
-	    	// Panel thông tin phòng
-	    	JPanel panelPhong = new JPanel(new GridLayout(2, 2, 5, 5));
-	    	panelPhong.setBorder(BorderFactory.createTitledBorder("Thông tin phòng"));
-	    	panelPhong.add(new JLabel("Tên phòng:"));
-	    	panelPhong.add(tenPhongField);
-	    	panelPhong.add(new JLabel("Giá phòng:"));
-	    	panelPhong.add(giaPhongField);
+	        // Các panel phụ
+	        JPanel panelPhong = new JPanel(new GridLayout(2, 2, 5, 5));
+	        panelPhong.setBorder(BorderFactory.createTitledBorder("Thông tin phòng"));
+	        panelPhong.add(new JLabel("Tên phòng:"));
+	        panelPhong.add(tenPhongField);
+	        panelPhong.add(new JLabel("Giá phòng:"));
+	        panelPhong.add(giaPhongField);
 
-	    	// Panel thông tin khách
-	    	JPanel panelKhach = new JPanel(new GridLayout(3, 2, 5, 5));
-	    	panelKhach.setBorder(BorderFactory.createTitledBorder("Thông tin khách"));
-	    	panelKhach.add(new JLabel("Tên khách hàng:"));
-	    	panelKhach.add(tenKhachHangField);
-	    	panelKhach.add(new JLabel("SĐT:"));
-	    	panelKhach.add(sdtField);
-	    	panelKhach.add(new JLabel("Kiểu thuê:"));
-	    	panelKhach.add(kieuThueComboBox);
+	        JPanel panelKhach = new JPanel(new GridLayout(3, 2, 5, 5));
+	        panelKhach.setBorder(BorderFactory.createTitledBorder("Thông tin khách"));
+	        panelKhach.add(new JLabel("Tên khách hàng:"));
+	        panelKhach.add(tenKhachHangField);
+	        panelKhach.add(new JLabel("SĐT:"));
+	        panelKhach.add(sdtField);
+	        panelKhach.add(new JLabel("Kiểu thuê:"));
+	        panelKhach.add(kieuThueComboBox);
 
-	    	// Panel thời gian đặt
-	    	JPanel panelThoiGian = new JPanel(new GridLayout(2, 2, 5, 5));
-	    	panelThoiGian.setBorder(BorderFactory.createTitledBorder("Thời gian đặt phòng"));
-	    	panelThoiGian.add(new JLabel("Ngày/giờ nhận:"));
-	    	panelThoiGian.add(spinnerGioNhan);
-	    	panelThoiGian.add(new JLabel("Ngày/giờ trả:"));
-	    	panelThoiGian.add(spinnerGioTra);
+	        JPanel panelTong = new JPanel();
+	        panelTong.setLayout(new BoxLayout(panelTong, BoxLayout.Y_AXIS));
+	        panelTong.add(panelPhong);
+	        panelTong.add(panelKhach);
+	        panelTong.add(panelThoiGian);
 
-	    	// Panel tổng
-	    	JPanel panelTong = new JPanel();
-	    	panelTong.setLayout(new BoxLayout(panelTong, BoxLayout.Y_AXIS));
-	    	panelTong.add(panelPhong);
-	    	panelTong.add(panelKhach);
-	    	panelTong.add(panelThoiGian);
-	    	LocalDateTime localDateTimeNhan = ((Date) spinnerGioNhan.getValue()).toInstant()
-	    		    .atZone(ZoneId.systemDefault())
-	    		    .toLocalDateTime();
-
-	    		LocalDateTime localDateTimeTra = ((Date) spinnerGioTra.getValue()).toInstant()
-	    		    .atZone(ZoneId.systemDefault())
-	    		    .toLocalDateTime();
-	        
 	        int result = JOptionPane.showConfirmDialog(
 	                this, panelTong, "Cập nhật thông tin đặt phòng",
 	                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-	        
+
 	        if (result == JOptionPane.OK_OPTION) {
-	            // Cập nhật thông tin vào bảng
+	            // Lấy ngày và giờ từ JDateChooser + JSpinner
+	            Date dNhan = dateNhan.getDate();
+	            Date dTra = dateTra.getDate();
+	            Date gioNhan = (Date) spinnerGioNhan.getValue();
+	            Date gioTra = (Date) spinnerGioTra.getValue();
+
+	            Calendar calNhan = Calendar.getInstance();
+	            calNhan.setTime(dNhan);
+	            Calendar calGioNhan = Calendar.getInstance();
+	            calGioNhan.setTime(gioNhan);
+	            calNhan.set(Calendar.HOUR_OF_DAY, calGioNhan.get(Calendar.HOUR_OF_DAY));
+	            calNhan.set(Calendar.MINUTE, calGioNhan.get(Calendar.MINUTE));
+
+	            Calendar calTra = Calendar.getInstance();
+	            calTra.setTime(dTra);
+	            Calendar calGioTra = Calendar.getInstance();
+	            calGioTra.setTime(gioTra);
+	            calTra.set(Calendar.HOUR_OF_DAY, calGioTra.get(Calendar.HOUR_OF_DAY));
+	            calTra.set(Calendar.MINUTE, calGioTra.get(Calendar.MINUTE));
+
+	            LocalDateTime localDateTimeNhan = LocalDateTime.ofInstant(
+	                    calNhan.toInstant(), ZoneId.systemDefault());
+	            LocalDateTime localDateTimeTra = LocalDateTime.ofInstant(
+	                    calTra.toInstant(), ZoneId.systemDefault());
+
+	            // Cập nhật thông tin vào bảng và cơ sở dữ liệu
 	            tableModel.setValueAt(maPhieuDP, row, 0);
 	            tableModel.setValueAt(tenNhanVien, row, 1);
 	            tableModel.setValueAt(tenPhong, row, 2);
 	            tableModel.setValueAt(kh.getTenKH(), row, 3);
 	            tableModel.setValueAt(kh.getSoDT(), row, 4);
 	            tableModel.setValueAt(ctpdp.getGiaPhongtheoKieuThue(), row, 5);
-	            PhieuDatPhong pdp_new= new PhieuDatPhong(maPhieuDP, nv, kh);
-	            DaoPhong daop= new DaoPhong();
-	            Phong phong= daop.getPhongtheoTen(tenPhong);
-	            boolean kiemtra1= daoPDP.capNhatPhieuDatPhong(pdp_new);
-	            ChiTietPhieuDatPhong ctpdp_new= new ChiTietPhieuDatPhong(pdp_new,phong, localDateTimeNhan, localDateTimeTra, true);
-	            boolean kiemtra2=daoctpdp.capNhatCTPhieuDatPhong(ctpdp_new);
-	            if(kiemtra1 && kiemtra2) {
-	            	JOptionPane.showMessageDialog(this,"Cập nhật phiếu đặt phòng thành công");
-	            }else{
-	            	JOptionPane.showMessageDialog(this,"Cập nhật phiếu đặt phòng không thành công");
+
+	            PhieuDatPhong pdp_new = new PhieuDatPhong(maPhieuDP, nv, kh);
+	            DaoPhong daop = new DaoPhong();
+	            Phong phong = daop.getPhongtheoTen(tenPhong);
+
+	            boolean kiemtra1 = daoPDP.capNhatPhieuDatPhong(pdp_new);
+	            ChiTietPhieuDatPhong ctpdp_new = new ChiTietPhieuDatPhong(
+	                    pdp_new, phong, localDateTimeNhan, localDateTimeTra, true);
+	            boolean kiemtra2 = daoctpdp.capNhatCTPhieuDatPhong(ctpdp_new);
+
+	            if (kiemtra1 && kiemtra2) {
+	                JOptionPane.showMessageDialog(this, "Cập nhật phiếu đặt phòng thành công");
+	            } else {
+	                JOptionPane.showMessageDialog(this, "Cập nhật phiếu đặt phòng không thành công");
 	            }
 	        }
 	    }
+
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -308,8 +317,15 @@ public class gui_PhieuDatPhong extends JPanel implements ActionListener {
 
 		    int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn hủy phiếu đặt phòng này?", "Xác nhận hủy", JOptionPane.YES_NO_OPTION);
 		    if (confirm == JOptionPane.YES_OPTION) {
+		    	ChiTietPhieuDatPhong pdp= daoCTPDP.getCTPDPtheoMaPDP(ma);
+		    	DaoPhong daoPhong= new DaoPhong();
+		    	Phong phong= daoPhong.getPhongtheoMa(pdp.getPhong().getMaPhong());
+		    	if(phong.getTrangThai().equals("Đã đặt")) {
+		    		daoPhong.capnhatttPhong("Trống", pdp.getPhong().getMaPhong());
+		    	}
 		    	daoCTPDP.xoaCTPhieuDatPhongTheoMaPDP(ma);
 		    	daoPDP.xoaPhieuDatPhongTheoMaPDP(ma);
+		    	
 		        tableModel.removeRow(selectedRow);
 		        JOptionPane.showMessageDialog(this, "Đã hủy phòng thành công!");
 		    }

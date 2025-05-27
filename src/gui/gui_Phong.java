@@ -155,6 +155,8 @@ public class gui_Phong extends JPanel implements ActionListener {
 	     */
 	    private void openUpdateDialog(int row) {
 	        // Lấy thông tin hiện tại từ bảng
+	    	dslphong=daolphong.getDatabase();
+	    	String maPhong= tableModel.getValueAt(row,0).toString();
 	        String tenPhong = (String) tableModel.getValueAt(row, 1);
 	        String tenLoaiPhong = (String) tableModel.getValueAt(row, 2);
 	        String sogiuong = tableModel.getValueAt(row, 3).toString();
@@ -163,23 +165,34 @@ public class gui_Phong extends JPanel implements ActionListener {
 	        String sotang= tableModel.getValueAt(row, 6).toString();
 	        // Tạo các trường nhập liệu với dữ liệu ban đầu
 	        txttenPhong = new JTextField(tenPhong);
-	        txttenLoaiPhong	= new JTextField(tenLoaiPhong);
+	        //txttenLoaiPhong	= new JTextField(tenLoaiPhong);
+	        Set<String> uniqueMaLoaiPhong = new HashSet<>();
+		    for (LoaiPhong lp : dslphong) {
+		        uniqueMaLoaiPhong.add(lp.getTenLoaiP());
+		    }
+	        JComboBox<String> cdlphong1 = new JComboBox<>();
+		    for (String ma : uniqueMaLoaiPhong) {
+		        cdlphong1.addItem(ma);
+		    }
+		    cdlphong1.setSelectedItem(tenLoaiPhong);
 	        txtsogiuong = new JTextField(sogiuong);
 	        txthesogiatheogiuong = new JTextField(hesogiaphong);
-	        txttrangthai = new JTextField(trangthai);
+		    String[] trangThaiOptions = {"Trống", "Đang sử dụng", "Đã đặt"};
+		    JComboBox<String> cboTrangThai = new JComboBox<>(trangThaiOptions);
+		    cboTrangThai.setSelectedItem(trangthai);
 	        txtsotang = new JTextField(sotang);
 	        // Sắp xếp các trường nhập liệu trong một panel
 	        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
 	        panel.add(new JLabel("Tên phòng:"));
 	        panel.add(txttenPhong);
 	        panel.add(new JLabel("Tên loại phòng:"));
-	        panel.add(txttenLoaiPhong);
+	        panel.add(cdlphong1);
 	        panel.add(new JLabel("Số giường:"));
 	        panel.add(txtsogiuong);
 	        panel.add(new JLabel("Hệ số giá:"));
 	        panel.add(txthesogiatheogiuong);
 	        panel.add(new JLabel("Trạng thái:"));
-	        panel.add(txttrangthai);
+	        panel.add(cboTrangThai);
 	        panel.add(new JLabel("Tầng:"));
 	        panel.add(txtsotang);
 	        
@@ -188,16 +201,24 @@ public class gui_Phong extends JPanel implements ActionListener {
 	                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 	        
 	        if (result == JOptionPane.OK_OPTION) {
+	        	LoaiPhong lphong_new= daolphong.getLoaiPhongTheoTen(cdlphong1.getSelectedItem().toString());
+	        	String tenPhong_new=txttenPhong.getText().trim();
+	        	String tenLoaiPhong_new = cdlphong1.getSelectedItem().toString();
+	        	Integer sogiuong_new = Integer.parseInt(txtsogiuong.getText().trim());
+	        	Float giaphong_new= Float.parseFloat(txthesogiatheogiuong.getText().trim());
+	        	String trangthai_new= cboTrangThai.getSelectedItem().toString();
+	        	Integer sotang_new= Integer.parseInt(txtsotang.getText().trim());
 	            // Cập nhật thông tin vào bảng
 	            tableModel.setValueAt(txttenPhong.getText(), row, 1);
-	            tableModel.setValueAt(txttenLoaiPhong.getText(), row, 2);
+	            tableModel.setValueAt(cdlphong1.getSelectedItem().toString(), row, 2);
 	            tableModel.setValueAt(txtsogiuong.getText(), row, 3);
 	            tableModel.setValueAt(txthesogiatheogiuong.getText(), row, 4);
-	            tableModel.setValueAt(txttrangthai.getText(), row, 5);
+	            tableModel.setValueAt(cboTrangThai.getSelectedItem().toString(), row, 5);
 	            tableModel.setValueAt(txtsotang.getText(), row, 6);
+	            Phong phong= new Phong(maPhong, tenPhong_new, lphong_new, sogiuong_new, giaphong_new, trangthai_new, sotang_new);
 	            
 	            // Ở ứng dụng thực tế, bạn có thể cập nhật thêm các thông tin ngày giờ đặt/trả vào cơ sở dữ liệu hoặc một model riêng.
-	            boolean capnhat=daophong.capnhattPhong(tableModel.getValueAt(row, 0).toString(),txttenPhong ,txttenLoaiPhong,txtsogiuong,txthesogiatheogiuong,txttrangthai, txtsotang);
+	            boolean capnhat=daophong.capnhattPhong(phong);
 	            if(capnhat) {
 	            	JOptionPane.showMessageDialog(null, "Cập nhật phòng thành công");
 	            }else {
@@ -220,58 +241,66 @@ public class gui_Phong extends JPanel implements ActionListener {
 				deleteRow();
 			}
 			if (o.equals(btnAdd)) {
-			    JDialog addDialog = new JDialog();
-			    addDialog.setSize(400, 500);
-			    addDialog.setLayout(new GridLayout(7, 2, 10, 10));
-			    addDialog.setLocationRelativeTo(this);
-			    ArrayList<String> dsmalp= new ArrayList<String>();
-			    dslphong= daolphong.getDatabase();
-			    for(LoaiPhong lp: dslphong) {
-			    	dsmalp.add(lp.getMaLoaiP());
-			    }
-			    JLabel lblName = new JLabel("Tên phòng:");
-			    JTextField txtName = new JTextField();
-			    
-			    Set<String> uniqueMaLoaiPhong = new HashSet<>();
-			    for (LoaiPhong lp : dslphong) {
-			        uniqueMaLoaiPhong.add(lp.getMaLoaiP());
-			    }
+				JDialog addDialog = new JDialog();
+				addDialog.setSize(500, 400);
+				addDialog.setLocationRelativeTo(this);
+				addDialog.setTitle("Thêm phòng");
+				// Tạo panel chính và set layout + padding
+				JPanel mainPanel = new JPanel(new GridLayout(7, 2, 10, 10)); // 10 là khoảng cách giữa các thành phần
+				mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15)); // Padding: top, left, bottom, right
 
-			    JComboBox<String> cdlphong = new JComboBox<>();
-			    for (String ma : uniqueMaLoaiPhong) {
-			        cdlphong.addItem(ma);
-			    }
-			    JLabel lblmalphong = new JLabel("Mã loại phòng:");
-			    JComboBox<String> cdlphong1 = new JComboBox<>();
-			    for (String ma : uniqueMaLoaiPhong) {
-			        cdlphong1.addItem(ma);
-			    }
-			    JLabel lblsogiuong = new JLabel("Số giường:");
-			    JTextField txtsogiuong = new JTextField();
-			    JLabel lblheso = new JLabel("Hệ số giá phòng theo giường:");
-			    JTextField txtheso = new JTextField();
-			    JLabel lbltrangthai = new JLabel("Trạng thái ban đầu:");
-			    String[] trangThaiOptions = {"Trống", "Đang sử dụng", "Đã đặt"};
-			    JComboBox<String> cboTrangThai = new JComboBox<>(trangThaiOptions);
-			    JLabel lblsotang = new JLabel("Số tầng:");
-			    JTextField txtsotang = new JTextField();
-			    JButton btnSave = new JButton("Lưu");
-			    JButton btnCancel = new JButton("Hủy");
+				ArrayList<String> dsmalp = new ArrayList<String>();
+				dslphong = daolphong.getDatabase();
+				for (LoaiPhong lp : dslphong) {
+				    dsmalp.add(lp.getMaLoaiP());
+				}
+				JLabel lblName = new JLabel("Tên phòng:");
+				JTextField txtName = new JTextField();
 
-			    addDialog.add(lblName);
-			    addDialog.add(txtName);
-			    addDialog.add(lblmalphong);
-			    addDialog.add(cdlphong1);
-			    addDialog.add(lblsogiuong);
-			    addDialog.add(txtsogiuong);
-			    addDialog.add(lblheso);
-			    addDialog.add(txtheso);
-			    addDialog.add(lbltrangthai);
-			    addDialog.add(cboTrangThai);
-			    addDialog.add(lblsotang);
-			    addDialog.add(txtsotang);
-			    addDialog.add(btnSave);
-			    addDialog.add(btnCancel);
+				Set<String> uniqueMaLoaiPhong = new HashSet<>();
+				for (LoaiPhong lp : dslphong) {
+				    uniqueMaLoaiPhong.add(lp.getTenLoaiP());
+				}
+
+				JComboBox<String> cdlphong = new JComboBox<>();
+				for (String ma : uniqueMaLoaiPhong) {
+				    cdlphong.addItem(ma);
+				}
+				JLabel lblmalphong = new JLabel("Tên loại phòng:");
+				JComboBox<String> cdlphong1 = new JComboBox<>();
+				for (String ma : uniqueMaLoaiPhong) {
+				    cdlphong1.addItem(ma);
+				}
+				JLabel lblsogiuong = new JLabel("Số giường:");
+				JTextField txtsogiuong = new JTextField();
+				JLabel lblheso = new JLabel("Hệ số giá phòng theo giường:");
+				JTextField txtheso = new JTextField();
+				JLabel lbltrangthai = new JLabel("Trạng thái ban đầu:");
+				String[] trangThaiOptions = {"Trống", "Đang sử dụng", "Đã đặt"};
+				JComboBox<String> cboTrangThai = new JComboBox<>(trangThaiOptions);
+				JLabel lblsotang = new JLabel("Số tầng:");
+				JTextField txtsotang = new JTextField();
+				JButton btnSave = new JButton("Thêm");
+				JButton btnCancel = new JButton("Hủy");
+
+				// Thêm các thành phần vào mainPanel
+				mainPanel.add(lblName);
+				mainPanel.add(txtName);
+				mainPanel.add(lblmalphong);
+				mainPanel.add(cdlphong1);
+				mainPanel.add(lblsogiuong);
+				mainPanel.add(txtsogiuong);
+				mainPanel.add(lblheso);
+				mainPanel.add(txtheso);
+				mainPanel.add(lbltrangthai);
+				mainPanel.add(cboTrangThai);
+				mainPanel.add(lblsotang);
+				mainPanel.add(txtsotang);
+				mainPanel.add(btnSave);
+				mainPanel.add(btnCancel);
+
+				// Thêm panel vào dialog
+				addDialog.setContentPane(mainPanel);
 
 			    btnSave.addActionListener(new ActionListener() {
 			        public void actionPerformed(ActionEvent e) {
@@ -285,27 +314,19 @@ public class gui_Phong extends JPanel implements ActionListener {
 			                JOptionPane.showMessageDialog(addDialog, "Vui lòng nhập đầy đủ thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
 			                return;
 			            }
-
 			            try {
 			            	String maphong=daophong.taomaP(dsphong);
 			            	LoaiPhong lphong = daolphong.getLoaiPhongTheoMa(maphong);
 			            	Phong phong= new Phong(maphong, name, lphong, Integer.parseInt(sogiuong),Float.parseFloat(heso), trangThai, Integer.parseInt(tang));
 			                daophong.themPhong(phong);
-			                
-		
-
 			                JOptionPane.showMessageDialog(addDialog, "Thêm phòng thành công!");
 			                addDialog.dispose();
-
-			                loadDataFromDatabase();; // Tải lại bảng sau khi thêm
 			            } catch (NumberFormatException ex) {
 			                JOptionPane.showMessageDialog(addDialog, "Giá phòng không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
 			            }
 			        }
 			    });
-
 			    btnCancel.addActionListener(e1 -> addDialog.dispose());
-
 			    addDialog.setVisible(true);
 			}
 		}

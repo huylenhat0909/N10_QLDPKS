@@ -89,13 +89,13 @@ public class DaoLoaiPhong {
 		try {
 			ConnectDB.getInstance();
 			Connection con= ConnectDB.getConnection();
-			String sql= "INSERT INTO LoaiPhong([maLoaiPhong],[tenLoaiPhong],[moTa],[giaPhongTheoGio],[giaPhongTheoNgay]) VALUES(?,?,?,?,?)";
+			String sql= "INSERT INTO LoaiPhong([maLoaiPhong],[tenLoaiPhong],[moTa],[giaPhonggio],[giaPhongngay]) VALUES(?,?,?,?,?)";
 			PreparedStatement statement= con.prepareStatement(sql);
 			statement.setString(1,lphong.getMaLoaiP());
 			statement.setString(2, lphong.getTenLoaiP());
 			statement.setString(3, lphong.getMoTa());
 			statement.setDouble(4,lphong.getGiaPhongtheogio());
-			statement.setString(5, lphong.getTenLoaiP());
+			statement.setDouble(5,lphong.getGiaPhongtheongay());
 			n=statement.executeUpdate();
 		}catch(SQLException E) {
 			E.printStackTrace();
@@ -121,14 +121,16 @@ public class DaoLoaiPhong {
 		}
 		return n>0;
 	}
-	public boolean xoaLoaiPhong(LoaiPhong lp) {
+	public boolean xoaLoaiPhong(String mlp) {
 		int n=0;
 		try {
 			ConnectDB.getInstance().connect();
 			Connection con= ConnectDB.getConnection();
 			String sql="DELETE FROM LoaiPhong Where maLoaiPhong=?";
 			PreparedStatement statement= con.prepareStatement(sql);
-			statement.setString(1, lp.getMaLoaiP());
+			statement.setString(1, mlp);
+			n=statement.executeUpdate();
+			statement.close();
 		}catch(SQLException e) {
 			e.printStackTrace();
 		}

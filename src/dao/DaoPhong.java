@@ -200,31 +200,22 @@ public class DaoPhong {
 		}while(dsma.contains(newID));
 		return newID;
 	}
-	public boolean capnhattPhong(String txtmaPhong, JTextField txttenPhong, JTextField txttenLoaiPhong, JTextField txtsogiuong,
-            JTextField txthesogiatheogiuong, JTextField txttrangthai, JTextField txtsotang) {
+	public boolean capnhattPhong(Phong phong_new) {
 		int n = 0;
 
 		try {
-			String tenLoai = txttenLoaiPhong.getText().trim();
-			LoaiPhong lphong = daolp.getLoaiPhongTheoTen(tenLoai);
-
-			if (lphong == null) {
-				System.out.println("Không tìm thấy loại phòng: " + tenLoai);
-				return false;
-			}
-
 			ConnectDB.getInstance().connect();
 			Connection con = ConnectDB.getConnection();
 			String sql = "UPDATE Phong SET tenPhong=?, maLoaiPhong=?, soGiuong=?, giaPhongTheoGiuong=?, trangThai=?, tang=? WHERE maPhong=?";
 			PreparedStatement statement = con.prepareStatement(sql);
 
-			statement.setString(1, txttenPhong.getText().trim());
-			statement.setString(2, lphong.getMaLoaiP());
-			statement.setInt(3, Integer.parseInt(txtsogiuong.getText().trim()));
-			statement.setFloat(4, Float.parseFloat(txthesogiatheogiuong.getText().trim()));
-			statement.setString(5, txttrangthai.getText().trim());
-			statement.setInt(6, Integer.parseInt(txtsotang.getText().trim()));
-			statement.setString(7, txtmaPhong);
+			statement.setString(1, phong_new.getTenPhong());
+			statement.setString(2, phong_new.getLoaiPhong().getMaLoaiP());
+			statement.setInt(3, phong_new.getSoGiuong());
+			statement.setFloat(4,phong_new.getGiaPhong());
+			statement.setString(5, phong_new.getTrangThai());
+			statement.setInt(6, phong_new.getTang());
+			statement.setString(7,phong_new.getMaPhong());
 
 			n = statement.executeUpdate();
 			statement.close();
@@ -232,11 +223,7 @@ public class DaoPhong {
 		} catch (SQLException e) {
 			System.out.println("Lỗi khi cập nhật phòng:");
 			e.printStackTrace();
-		} catch (NumberFormatException e) {
-			System.out.println("Lỗi định dạng số:");
-			e.printStackTrace();
 		}
-
 		return n > 0;
 	}
 

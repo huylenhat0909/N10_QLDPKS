@@ -18,10 +18,12 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -39,6 +41,7 @@ import entity.ChiTietPhieuDatPhong;
 import entity.KhachHang;
 import entity.KhuyenMai;
 import entity.LoaiPhong;
+import entity.NhanVien;
 import entity.PhieuDatPhong;
 import entity.TaiKhoan;
 
@@ -72,6 +75,9 @@ public class gui_TaiKhoan extends JPanel implements ActionListener {
 		private List<KhachHang> dskh;
 		private DaoTaiKhoan daotk;
 		private List<TaiKhoan> dstk;
+		private JPasswordField txtPassword;
+		private JPasswordField txtConfirmPassword;
+		private JTextField txtUsername;
 
 		
 
@@ -82,7 +88,7 @@ public class gui_TaiKhoan extends JPanel implements ActionListener {
 	        JPanel headerPanel = new JPanel();
 	        originalData = new ArrayList<Object[]>();
 	        headerPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-	        JLabel lblSearch = new JLabel("Nhập mã khuyến mãi:");
+	        JLabel lblSearch = new JLabel("Mã nhân viên:");
 	        lblSearch.setFont(font);
 	        txtSearch = new JTextField(15);
 	        txtSearch.setPreferredSize(new Dimension(30, 30));
@@ -150,27 +156,19 @@ public class gui_TaiKhoan extends JPanel implements ActionListener {
 	     */
 	    private void openUpdateDialog(int row) {
 	        // Lấy thông tin hiện tại từ bảng
-	        String tenLoaiPhong = (String) tableModel.getValueAt(row, 1);
-	        String moTa = (String) tableModel.getValueAt(row, 2);
-	        String giaphonggio = tableModel.getValueAt(row, 3).toString();
-	        String giaphongngay = tableModel.getValueAt(row, 4).toString();
+	    	String maNv= tableModel.getValueAt(row,0).toString();
+	        String tenTk = (String) tableModel.getValueAt(row, 1);
+	        String mk = (String) tableModel.getValueAt(row, 2);
 	        
 	        // Tạo các trường nhập liệu với dữ liệu ban đầu
-	        txttenLoaiPhong = new JTextField(tenLoaiPhong);
-	        txtmota	= new JTextField(moTa);
-	        txtgiaphonggio = new JTextField(giaphonggio);
-	        txtgiaphongngay = new JTextField(giaphongngay);
-	        
+	        txttenLoaiPhong = new JTextField(tenTk);
+	        txtmota	= new JTextField(mk);
 	        // Sắp xếp các trường nhập liệu trong một panel
 	        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
-	        panel.add(new JLabel("Tên loại phòng:"));
+	        panel.add(new JLabel("Tên tài khoản:"));
 	        panel.add(txttenLoaiPhong);
-	        panel.add(new JLabel("Mô tả loại phòng:"));
+	        panel.add(new JLabel("Mật khẩu:"));
 	        panel.add(txtmota);
-	        panel.add(new JLabel("Giá phòng theo giờ:"));
-	        panel.add(txtgiaphonggio);
-	        panel.add(new JLabel("Giá phòng theo ngày:"));
-	        panel.add(txtgiaphongngay);
 	        
 	        int result = JOptionPane.showConfirmDialog(
 	                this, panel, "Cập nhật thông tin loại phòng",
@@ -178,13 +176,16 @@ public class gui_TaiKhoan extends JPanel implements ActionListener {
 	        
 	        if (result == JOptionPane.OK_OPTION) {
 	            // Cập nhật thông tin vào bảng
-	            tableModel.setValueAt(tenPhongField.getText(), row, 0);
-	            tableModel.setValueAt(tenKhachHangField.getText(), row, 1);
-	            tableModel.setValueAt(sdtField.getText(), row, 2);
-	            tableModel.setValueAt(kieuThueField.getText(), row, 3);
-	            LoaiPhong lphpng = new LoaiPhong(tableModel.getValueAt(row, 0).toString(), tenLoaiPhong, moTa, Double.parseDouble(giaphonggio),Double.parseDouble(giaphonggio));
-	            // Ở ứng dụng thực tế, bạn có thể cập nhật thêm các thông tin ngày giờ đặt/trả vào cơ sở dữ liệu hoặc một model riêng.
-	            daolphong.capnhatLoaiPhong(lphpng);
+	            tableModel.setValueAt(txttenLoaiPhong.getText(), row, 1);
+	            tableModel.setValueAt(txtmota.getText(), row, 2);
+	            DaoNhanVien daonv= new DaoNhanVien();
+	            NhanVien nv= daonv.getNhanVienTheoMa(maNv);
+	            TaiKhoan tk_new= new TaiKhoan(nv, txttenLoaiPhong.getText(), txtmota.getText());
+	            if(daotk.capNhatTK(tk_new)) {
+	            	JOptionPane.showMessageDialog(null,"Cập nhật tài khoản thành công");
+	            }else {
+	            	JOptionPane.showMessageDialog(null,"Cập nhật không thành công");
+	            }
 	        }
 	    }
 
@@ -202,58 +203,80 @@ public class gui_TaiKhoan extends JPanel implements ActionListener {
 				deleteRow();
 			}
 			if (o.equals(btnAdd)) {
-			    JDialog addDialog = new JDialog();
-			    addDialog.setSize(300, 200);
-			    addDialog.setLayout(new GridLayout(5, 2, 10, 10));
-			    addDialog.setLocationRelativeTo(this);
+				JDialog addDialog = new JDialog();
+				addDialog.setTitle("Cấp tài khoản cho nhân viên");
+				addDialog.setSize(400, 250);
+				addDialog.setLocationRelativeTo(this);
 
-			    JLabel lblName = new JLabel("Tên loại phòng:");
-			    JTextField txtName = new JTextField();
+				// Tạo JPanel chính và đặt layout + border
+				JPanel mainPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+				mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15)); // top, left, bottom, right
 
-			    JLabel lblmota = new JLabel("Mô tả loại phòng:");
-			    JTextField txtmota = new JTextField();
-			    JLabel lblgiagio = new JLabel("Giá theo giờ:");
-			    JTextField txtgiagio = new JTextField();
-			    JLabel lblgiangay = new JLabel("Giá theo ngày:");
-			    JTextField txtngay = new JTextField();
-			    JButton btnSave = new JButton("Lưu");
-			    JButton btnCancel = new JButton("Hủy");
+				DaoNhanVien daonv = new DaoNhanVien();
+				List<NhanVien> dsNhanVien = daonv.getDatabase();
 
-			    addDialog.add(lblName);
-			    addDialog.add(txtName);
-			    addDialog.add(lblmota);
-			    addDialog.add(txtmota);
-			    addDialog.add(lblgiagio);
-			    addDialog.add(txtgiagio);
-			    addDialog.add(lblgiangay);
-			    addDialog.add(txtngay);
-			    addDialog.add(btnSave);
-			    addDialog.add(btnCancel);
+				// ComboBox chọn mã nhân viên
+				JLabel lblMaNV = new JLabel("Chọn mã nhân viên:");
+				JComboBox<String> cbMaNV = new JComboBox<>();
+				for (NhanVien nv : dsNhanVien) {
+				    cbMaNV.addItem(nv.getMaNV());
+				}
 
+				// Nhập tài khoản và mật khẩu
+				JLabel lblUsername = new JLabel("Tên tài khoản:");
+				 txtUsername = new JTextField();
+
+				JLabel lblPassword = new JLabel("Mật khẩu:");
+				JPasswordField txtPassword = new JPasswordField();
+
+				JLabel lblConfirmPassword = new JLabel("Xác nhận mật khẩu:");
+				JPasswordField txtConfirmPassword = new JPasswordField();
+
+				JButton btnSave = new JButton("Lưu");
+				JButton btnCancel = new JButton("Hủy");
+
+				// Thêm thành phần vào mainPanel
+				mainPanel.add(lblMaNV); mainPanel.add(cbMaNV);
+				mainPanel.add(lblUsername); mainPanel.add(txtUsername);
+				mainPanel.add(lblPassword); mainPanel.add(txtPassword);
+				mainPanel.add(lblConfirmPassword); mainPanel.add(txtConfirmPassword);
+				mainPanel.add(btnSave); mainPanel.add(btnCancel);
+				addDialog.setContentPane(mainPanel);
+
+			    // Xử lý sự kiện lưu
 			    btnSave.addActionListener(new ActionListener() {
 			        public void actionPerformed(ActionEvent e) {
-			            String name = txtName.getText().trim();
-			            String mota = txtmota.getText().trim();
-			            Double giaphonggio= Double.parseDouble(txtgiagio.getText().trim());
-			            Double giaphongngay= Double.parseDouble(txtngay.getText().trim());
-			            if (name.isEmpty()) {
+			            String maNV = cbMaNV.getSelectedItem().toString();
+			            String username = txtUsername.getText().trim();
+			            String password = new String(txtPassword.getPassword()).trim();
+			            String confirmPassword = new String(txtConfirmPassword.getPassword()).trim();
+			            // Kiểm tra nếu nhân viên đã có tài khoản
+			            for (TaiKhoan tk : dstk) {
+			                if (tk.getNhanVien().getMaNV().equals(maNV)) {
+			                    JOptionPane.showMessageDialog(addDialog, "Nhân viên này đã có tài khoản!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+			                }
+			            }
+			            if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
 			                JOptionPane.showMessageDialog(addDialog, "Vui lòng nhập đầy đủ thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
 			                return;
 			            }
 
+			            if (!password.equals(confirmPassword)) {
+			                JOptionPane.showMessageDialog(addDialog, "Mật khẩu và xác nhận mật khẩu không khớp!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+			                return;
+			            }
+
+
 			            try {
-			            	String malphong=daolphong.taomaLP(dslphong);
-			            	LoaiPhong lphong = new LoaiPhong(mota, name, mota, giaphonggio, giaphongngay);
-			                daolphong.themLoaiPhong(lphong);
-			                
-		
+			                // Gọi DAO để thêm tài 
+			            	NhanVien nv= daonv.getNhanVienTheoMa(maNV);
+			                TaiKhoan taikhoan = new TaiKhoan(nv, username, password);
+			                daotk.themTaiKhoan(taikhoan);
 
-			                JOptionPane.showMessageDialog(addDialog, "Thêm loại phòng thành công!");
+			                JOptionPane.showMessageDialog(addDialog, "Tạo tài khoản thành công!");
 			                addDialog.dispose();
-
-			                loadDataFromDatabase();; // Tải lại bảng sau khi thêm
-			            } catch (NumberFormatException ex) {
-			                JOptionPane.showMessageDialog(addDialog, "Giá phòng không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+			            } catch (Exception ex) {
+			                JOptionPane.showMessageDialog(addDialog, "Lỗi khi tạo tài khoản: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
 			            }
 			        }
 			    });
@@ -269,14 +292,21 @@ public class gui_TaiKhoan extends JPanel implements ActionListener {
 			int selectedRow = table.getSelectedRow();
 
 		    if (selectedRow == -1) {
-		        JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng cần xóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+		        JOptionPane.showMessageDialog(this, "Vui lòng chọn tài khoản cần xóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
 		        return;
 		    }
 
-		    int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa dòng này?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
+		    int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa tài khoản này?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
 		    if (confirm == JOptionPane.YES_OPTION) {
 		        tableModel.removeRow(selectedRow);
-		        JOptionPane.showMessageDialog(this, "Đã xóa dòng thành công!");
+		        String tentk=tableModel.getValueAt(selectedRow, 1).toString();
+		        
+		        if(daotk.xoaTaiKhoan(tentk)) {
+		        	JOptionPane.showMessageDialog(this, "Xóa tài khoản thành công!");
+		        }else {
+		        	JOptionPane.showMessageDialog(this, "Xóa tài khoản không thành công!");
+		        }
+		        
 		    }
 		}
 

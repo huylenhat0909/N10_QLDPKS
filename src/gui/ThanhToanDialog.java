@@ -20,6 +20,7 @@ import entity.Phong;
 import java.awt.*;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -47,7 +48,7 @@ import java.time.format.DateTimeFormatter;
 	    private DaoCTPhieuDP daoCTPDP ;
 	    private ChiTietPhieuDatPhong ctpdp;
 		private Object guiSDKS;
-	    public ThanhToanDialog(JFrame parent, String maPhong, String sdt, String maHD) {
+	    public ThanhToanDialog(JFrame parent, String maPhong, String sdt, String maHD,LocalDateTime localDateTime ) {
 	        super(parent, "Thanh toán phòng", true);
 	        daoCTHD= new DaoChiTietHoaDon();
 	        setSize(600, 500);
@@ -226,6 +227,7 @@ import java.time.format.DateTimeFormatter;
 	        	String tenKM= comboKhuyenMai.getSelectedItem().toString();
 	        	KhuyenMai km= daokm.getKhuyenMaitheoTen(tenKM);
 	        	daohd.capnhatKMvaoHD(km, hd);
+	        	capNhatTongTien(hd);
 	            // Bước 1: Hỏi phương thức thanh toán
 	            String[] options = {"Tiền mặt", "Chuyển khoản", "Momo", "ZaloPay"};
 	            String ppThanhToan = (String) JOptionPane.showInputDialog(
@@ -241,14 +243,31 @@ import java.time.format.DateTimeFormatter;
 	            if (ppThanhToan == null) {
 	                return; // Người dùng bấm Cancel
 	            }
+	            
+	         // Bước 2: Cập nhật trạng thái phòng và CTHD
+	            daoCTPDP = new DaoCTPhieuDP();
+	            ctpdp = daoCTPDP.getCTPDPtheoMaPhong(ph.getMaPhong());
+	            
+	            ChiTietPhieuDatPhong ctpdp = daoCTPDP.getCTPDPtheoMaPhongDay(maPhong, localDateTime.toLocalDate());
 
-	            // Bước 2: Cập nhật trạng thái phòng và CTHD
-	            daoCTPDP= new DaoCTPhieuDP();
-	            ctpdp=daoCTPDP.getCTPDPtheoMaPhong(ph.getMaPhong());
+	            boolean coCTPDP = (ctpdp != null && ctpdp.getGioDatPhong() != null && ctpdp.getGioTraPhong() != null);
+
+	            // Cập nhật phương thức thanh toán
 	            boolean success1 = daoCTHD.capNhatTrangThaiVaPPThanhToan(hd.getMaHD(), ppThanhToan);
-	            boolean success2 = daophong.capnhatttPhong("Trống", ctpdp.getPhong().getMaPhong());
-	            daoCTHD= new DaoChiTietHoaDon();
-	            List<ChiTietHoaDon> dsdv=daoCTHD.getCTHDByMaHD(maHD);
+
+	            // Bước bổ sung: Kiểm tra phiếu đặt phòng vào ngày hôm sau
+	            LocalDate ngayHomSau = localDateTime.toLocalDate().plusDays(1);
+	            ChiTietPhieuDatPhong ctpdpHomSau = daoCTPDP.getCTPDPtheoMaPhongDay(maPhong, ngayHomSau);
+
+	            // Nếu có phiếu đặt ở ngày hôm sau → đặt lại trạng thái là "Đã đặt"
+	            String trangThaiMoi = (ctpdpHomSau != null && ctpdpHomSau.getGioDatPhong() != null) ? "Đã đặt" : "Trống";
+
+	            // Cập nhật trạng thái phòng
+	            boolean success2 = daophong.capnhatttPhong(trangThaiMoi, ph.getMaPhong());
+
+	            // Cập nhật danh sách dịch vụ của hóa đơn
+	            daoCTHD = new DaoChiTietHoaDon();
+	            List<ChiTietHoaDon> dsdv = daoCTHD.getCTHDByMaHD(maHD);
 	            
 	            if (success1 && success2) {
 	                // Bước 3: Xuất file thanh toán

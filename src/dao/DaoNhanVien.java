@@ -163,7 +163,7 @@ public class DaoNhanVien {
 		}
 		return n>0;
 	}
-	public static String taomaNV(ArrayList<NhanVien> dsnv2) {
+	public static String taomaNV(List<NhanVien> dsnv2) {
         //return String.format("NV%03d", count);
 		ArrayList<String> dsmanv = new ArrayList<String>();
 		for (NhanVien nv :dsnv2) {

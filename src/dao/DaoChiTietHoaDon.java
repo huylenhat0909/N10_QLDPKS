@@ -219,7 +219,7 @@ public class DaoChiTietHoaDon {
 		HoaDon hd= daohoadon.getHoaDontheoma(mahd);
 		Double tienphong=tinhTongTien(mahd);
 		Double tiendv=tinhTongtiendv(mahd);
-		return (tienphong+tiendv)*hd.getKhuyenmai().getPhanTramKM();
+		return (tienphong+tiendv)-(tienphong+tiendv)*hd.getKhuyenmai().getPhanTramKM();
 	}
 	public int sluonghdchuathanhtoan() {
 		int tong=0;

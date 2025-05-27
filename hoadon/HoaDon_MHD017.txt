@@ -1,0 +1,19 @@
+======== HOÁ ĐƠN THANH TOÁN ========
+Mã hoá đơn: MHD017
+Tên khách hàng: Nguyễn Văn An
+SĐT: 0333333333
+Phòng: Phòng 205
+Ngày đặt: 2025-05-24T10:31
+Ngày trả: 2025-05-24T10:31:28.687
+Phương thức thanh toán: Tiền mặt
+------------------------------------
+DỊCH VỤ ĐÃ SỬ DỤNG:
+Tên dịch vụ               Số lượng   Đơn giá         Thành tiền     
+Không sử dụng             0          0 VND           0 VND          
+Cơm tấm                   10         45.000 VND      450.000 VND    
+------------------------------------
+TỔNG TIỀN DỊCH VỤ: 450.000 VND
+TỔNG TIỀN : Tổng tiền: 528.000 VND
+TỔNG TIỀN SAU KHI ÁP DỤNG KHUYẾN MÃI : 0 VND
+Ngày thanh toán: 2025-05-24 10:33
+====================================

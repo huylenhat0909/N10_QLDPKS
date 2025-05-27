@@ -11,9 +11,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -25,10 +31,14 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SpinnerDateModel;
 import javax.swing.table.DefaultTableModel;
+
+import com.toedter.calendar.JDateChooser;
 
 import dao.DaoCTPhieuDP;
 import dao.DaoKhachHang;
@@ -37,6 +47,7 @@ import dao.DaoLoaiPhong;
 import dao.DaoNhanVien;
 import dao.DaoPhieuDP;
 import entity.ChiTietPhieuDatPhong;
+import entity.DichVu;
 import entity.KhuyenMai;
 import entity.LoaiPhong;
 import entity.PhieuDatPhong;
@@ -144,43 +155,73 @@ public class gui_KhuyenMai extends JPanel implements ActionListener {
 	     */
 	    private void openUpdateDialog(int row) {
 	        // Lấy thông tin hiện tại từ bảng
-	        String tenLoaiPhong = (String) tableModel.getValueAt(row, 1);
-	        String moTa = (String) tableModel.getValueAt(row, 2);
-	        String giaphonggio = tableModel.getValueAt(row, 3).toString();
-	        String giaphongngay = tableModel.getValueAt(row, 4).toString();
-	        
-	        // Tạo các trường nhập liệu với dữ liệu ban đầu
-	        txttenLoaiPhong = new JTextField(tenLoaiPhong);
-	        txtmota	= new JTextField(moTa);
-	        txtgiaphonggio = new JTextField(giaphonggio);
-	        txtgiaphongngay = new JTextField(giaphongngay);
-	        
-	        // Sắp xếp các trường nhập liệu trong một panel
+	        String maKM = tableModel.getValueAt(row, 0).toString();
+	        KhuyenMai khuyenmai= daokm.getKhuyenMaitheoMa(maKM);
+	        String tenKM = tableModel.getValueAt(row, 1).toString();
+	        String ngayApDungStr = tableModel.getValueAt(row, 2).toString();
+	        String ngayHetHanStr = tableModel.getValueAt(row, 3).toString();
+	        // Trường nhập liệu
+	        JTextField txtTenKM = new JTextField(tenKM);
+	        JTextField txtTienApDung = new JTextField(khuyenmai.getTienApdungKM().toString());
+	        JTextField txtPhanTram = new JTextField(khuyenmai.getPhanTramKM().toString());
+
+	        // Spinner chọn ngày
+	        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	        Date ngayApDung = new Date();
+	        Date ngayHetHan = new Date();
+
+	        try {
+	            ngayApDung = dateFormat.parse(ngayApDungStr);
+	            ngayHetHan = dateFormat.parse(ngayHetHanStr);
+	        } catch (ParseException e) {
+	            e.printStackTrace();
+	        }
+
+	        JSpinner spinnerApDung = new JSpinner(new SpinnerDateModel(ngayApDung, null, null, Calendar.DAY_OF_MONTH));
+	        JSpinner spinnerHetHan = new JSpinner(new SpinnerDateModel(ngayHetHan, null, null, Calendar.DAY_OF_MONTH));
+	        JSpinner.DateEditor editorApDung = new JSpinner.DateEditor(spinnerApDung, "yyyy-MM-dd");
+	        spinnerApDung.setEditor(editorApDung);
+	        JSpinner.DateEditor editorHetHan = new JSpinner.DateEditor(spinnerHetHan, "yyyy-MM-dd");
+	        spinnerHetHan.setEditor(editorHetHan);
+
+	        // Panel hiển thị form
 	        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
-	        panel.add(new JLabel("Tên loại phòng:"));
-	        panel.add(txttenLoaiPhong);
-	        panel.add(new JLabel("Mô tả loại phòng:"));
-	        panel.add(txtmota);
-	        panel.add(new JLabel("Giá phòng theo giờ:"));
-	        panel.add(txtgiaphonggio);
-	        panel.add(new JLabel("Giá phòng theo ngày:"));
-	        panel.add(txtgiaphongngay);
-	        
+	        panel.add(new JLabel("Tên khuyến mãi:"));
+	        panel.add(txtTenKM);
+	        panel.add(new JLabel("Ngày áp dụng:"));
+	        panel.add(spinnerApDung);
+	        panel.add(new JLabel("Ngày hết hạn:"));
+	        panel.add(spinnerHetHan);
+	        panel.add(new JLabel("Tiền áp dụng:"));
+	        panel.add(txtTienApDung);
+	        panel.add(new JLabel("Phần trăm khuyến mãi:"));
+	        panel.add(txtPhanTram);
+
 	        int result = JOptionPane.showConfirmDialog(
-	                this, panel, "Cập nhật thông tin loại phòng",
+	                null, panel, "Cập nhật khuyến mãi",
 	                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-	        
+
 	        if (result == JOptionPane.OK_OPTION) {
-	            // Cập nhật thông tin vào bảng
-	            tableModel.setValueAt(tenPhongField.getText(), row, 0);
-	            tableModel.setValueAt(tenKhachHangField.getText(), row, 1);
-	            tableModel.setValueAt(sdtField.getText(), row, 2);
-	            tableModel.setValueAt(kieuThueField.getText(), row, 3);
-	            LoaiPhong lphpng = new LoaiPhong(tableModel.getValueAt(row, 0).toString(), tenLoaiPhong, moTa, Double.parseDouble(giaphonggio),Double.parseDouble(giaphonggio));
-	            // Ở ứng dụng thực tế, bạn có thể cập nhật thêm các thông tin ngày giờ đặt/trả vào cơ sở dữ liệu hoặc một model riêng.
-	            daolphong.capnhatLoaiPhong(lphpng);
+	            // Cập nhật lại dữ liệu trên bảng
+	            tableModel.setValueAt(txtTenKM.getText(), row, 1);
+	            tableModel.setValueAt(dateFormat.format((Date) spinnerApDung.getValue()), row, 2);
+	            tableModel.setValueAt(dateFormat.format((Date) spinnerHetHan.getValue()), row, 3);
+	            tableModel.setValueAt(txtTienApDung.getText(), row, 4);
+	            tableModel.setValueAt(txtPhanTram.getText(), row, 5);
+
+	            // Gọi DAO để cập nhật cơ sở dữ liệu nếu cần
+	            KhuyenMai km = new KhuyenMai(
+	                    maKM,
+	                    txtTenKM.getText(),
+	                    (LocalDateTime) spinnerApDung.getValue(),
+	                    (LocalDateTime) spinnerHetHan.getValue(),
+	                    Double.parseDouble(txtTienApDung.getText()),
+	                    Double.parseDouble(txtPhanTram.getText())
+	            );
+	            daokm.capNhatKhuyenMai(km); // cần có lớp DAO với phương thức tương ứng
 	        }
 	    }
+
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -196,69 +237,7 @@ public class gui_KhuyenMai extends JPanel implements ActionListener {
 				deleteRow();
 			}
 			if (o.equals(btnAdd)) {
-			    JDialog addDialog = new JDialog();
-			    addDialog.setSize(300, 400);
-			    addDialog.setLayout(new GridLayout(6, 2, 10, 10));
-			    addDialog.setLocationRelativeTo(this);
-
-			    JLabel lblName = new JLabel("Tên khuyến mãi:");
-			    JTextField txtName = new JTextField();
-
-			    JLabel lblmota = new JLabel("Ngày áp dụng:");
-			    JTextField txtmota = new JTextField();
-			    JLabel lblgiagio = new JLabel("Ngày hết hạn:");
-			    JTextField txtgiagio = new JTextField();
-			    JLabel lblgiangay = new JLabel("Tiền áp dụng:");
-			    JTextField txtngay = new JTextField();
-			    JLabel lblkm = new JLabel("Phần trăm khuyến mãi:");
-			    JTextField txtkm = new JTextField();
-			    JButton btnSave = new JButton("Lưu");
-			    JButton btnCancel = new JButton("Hủy");
-
-			    addDialog.add(lblName);
-			    addDialog.add(txtName);
-			    addDialog.add(lblmota);
-			    addDialog.add(txtmota);
-			    addDialog.add(lblgiagio);
-			    addDialog.add(txtgiagio);
-			    addDialog.add(lblgiangay);
-			    addDialog.add(txtngay);
-			    addDialog.add(lblkm);
-			    addDialog.add(txtkm);
-			    addDialog.add(btnSave);
-			    addDialog.add(btnCancel);
-
-			    btnSave.addActionListener(new ActionListener() {
-			        public void actionPerformed(ActionEvent e) {
-			            String name = txtName.getText().trim();
-			            String mota = txtmota.getText().trim();
-			            Double giaphonggio= Double.parseDouble(txtgiagio.getText().trim());
-			            Double giaphongngay= Double.parseDouble(txtngay.getText().trim());
-			            if (name.isEmpty()) {
-			                JOptionPane.showMessageDialog(addDialog, "Vui lòng nhập đầy đủ thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-			                return;
-			            }
-
-			            try {
-			            	String malphong=daolphong.taomaLP(dslphong);
-			            	LoaiPhong lphong = new LoaiPhong(mota, name, mota, giaphonggio, giaphongngay);
-			                daolphong.themLoaiPhong(lphong);
-			                
-		
-
-			                JOptionPane.showMessageDialog(addDialog, "Thêm loại phòng thành công!");
-			                addDialog.dispose();
-
-			                loadDataFromDatabase();; // Tải lại bảng sau khi thêm
-			            } catch (NumberFormatException ex) {
-			                JOptionPane.showMessageDialog(addDialog, "Giá phòng không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-			            }
-			        }
-			    });
-
-			    btnCancel.addActionListener(e1 -> addDialog.dispose());
-
-			    addDialog.setVisible(true);
+			    openAddKhuyenMai();
 			}
 		}
 
@@ -267,14 +246,19 @@ public class gui_KhuyenMai extends JPanel implements ActionListener {
 			int selectedRow = table.getSelectedRow();
 
 		    if (selectedRow == -1) {
-		        JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng cần xóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+		        JOptionPane.showMessageDialog(this, "Vui lòng chọn khuyến mãi cần xóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
 		        return;
 		    }
 
-		    int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa dòng này?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
+		    int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
 		    if (confirm == JOptionPane.YES_OPTION) {
+		    	String makm= tableModel.getValueAt(selectedRow,0).toString();
 		        tableModel.removeRow(selectedRow);
-		        JOptionPane.showMessageDialog(this, "Đã xóa dòng thành công!");
+		        if(daokm.xoaKhuyenMai(makm)) {
+		        	JOptionPane.showConfirmDialog(null, "Xóa khuyến mãi thành công ");
+		        }else {
+		        	JOptionPane.showConfirmDialog(null, "Xóa khuyến mãi không thành công ");
+		        }
 		    }
 		}
 
@@ -339,5 +323,120 @@ public class gui_KhuyenMai extends JPanel implements ActionListener {
 	        percentFormat.setMaximumFractionDigits(2);
 	        return percentFormat.format(value);
 	    }
+		private void openAddKhuyenMai() {
+			JDialog addDialog = new JDialog();
+			addDialog.setTitle("Thêm Khuyến Mãi");
+			addDialog.setSize(400, 300);
+			addDialog.setLocationRelativeTo(this); // Center dialog
+
+			// Tạo content panel với GridLayout và padding
+			JPanel contentPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+			contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+			// Các thành phần giao diện
+			JLabel lblName = new JLabel("Tên khuyến mãi:");
+			JTextField txtName = new JTextField();
+
+			// Thay thế bằng JDateChooser
+			JLabel lblNgayApDung = new JLabel("Ngày áp dụng:");
+			JDateChooser dateChooserApDung = new JDateChooser();
+			dateChooserApDung.setDate(new Date()); // Gán mặc định ngày hiện tại
+
+			JLabel lblNgayHetHan = new JLabel("Ngày hết hạn:");
+			JDateChooser dateChooserHetHan = new JDateChooser();
+			dateChooserHetHan.setDate(new Date()); // Gán mặc định ngày hiện tại
+
+			JLabel lblTienApDung = new JLabel("Tiền áp dụng:");
+			JTextField txtTienApDung = new JTextField();
+
+			JLabel lblPhanTram = new JLabel("Phần trăm khuyến mãi:");
+			JTextField txtPhanTram = new JTextField();
+
+			JButton btnSave = new JButton("Lưu");
+			JButton btnCancel = new JButton("Hủy");
+
+			// Thêm thành phần vào content panel
+			contentPanel.add(lblName);           contentPanel.add(txtName);
+			contentPanel.add(lblNgayApDung);     contentPanel.add(dateChooserApDung);
+			contentPanel.add(lblNgayHetHan);     contentPanel.add(dateChooserHetHan);
+			contentPanel.add(lblTienApDung);     contentPanel.add(txtTienApDung);
+			contentPanel.add(lblPhanTram);       contentPanel.add(txtPhanTram);
+			contentPanel.add(btnSave);           contentPanel.add(btnCancel);
+
+			// Gán panel vào dialog và hiển thị
+			addDialog.setContentPane(contentPanel);
+
+		    btnSave.addActionListener(new ActionListener() {
+		    	public void actionPerformed(ActionEvent e) {
+		            String name = txtName.getText().trim();
+		            java.util.Date ngayADUtil = dateChooserApDung.getDate();
+		            java.util.Date ngayHHUtil = dateChooserHetHan.getDate();
+
+		            // Kiểm tra chuỗi rỗng
+		            if (name.isEmpty()) {
+		                JOptionPane.showMessageDialog(addDialog, "Tên khuyến mãi không được để trống!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		           
+		            }
+
+		            // Kiểm tra ngày
+		            if (ngayADUtil == null || ngayHHUtil == null) {
+		                JOptionPane.showMessageDialog(addDialog, "Vui lòng chọn ngày áp dụng và ngày hết hạn!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		             
+		            }
+
+		            // Chuyển sang LocalDateTime để dễ so sánh
+		            LocalDateTime ngayApDung = ngayADUtil.toInstant()
+		            	    .atZone(ZoneId.systemDefault())
+		            	    .toLocalDateTime()
+		            	    .truncatedTo(ChronoUnit.MINUTES);
+
+		            	LocalDateTime ngayHetHan = ngayHHUtil.toInstant()
+		            	    .atZone(ZoneId.systemDefault())
+		            	    .toLocalDateTime()
+		            	    .truncatedTo(ChronoUnit.MINUTES);
+		            if (!ngayApDung.isBefore(ngayHetHan)) {
+		                JOptionPane.showMessageDialog(addDialog, "Ngày áp dụng phải trước ngày hết hạn!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		              
+		            }
+
+		            // Kiểm tra tiền và phần trăm
+		            double tienapdung = Double.parseDouble(txtTienApDung.getText().trim());
+		            double phantram = Double.parseDouble(txtPhanTram.getText().trim());
+		            try {
+		                if (tienapdung < 50000) {
+		                    JOptionPane.showMessageDialog(addDialog, "Tiền áp dụng phải lớn hơn hoặc bằng 50,000!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		                 
+		                }
+		                if (phantram < 0 || phantram > 1) {
+		                    JOptionPane.showMessageDialog(addDialog, "Phần trăm khuyến mãi phải nằm trong khoảng từ 0 đến 1!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		                
+		                }
+		            } catch (NumberFormatException ex) {
+		                JOptionPane.showMessageDialog(addDialog, "Tiền áp dụng và phần trăm phải là số hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		            }
+
+		            try {
+		                String makm = daokm.taomaDV(dskm);
+		                KhuyenMai km = new KhuyenMai(makm, name, ngayApDung, ngayHetHan, tienapdung, phantram);
+		                boolean kiem = daokm.themKhuyenMai(km);
+		                if (kiem) {
+		                    JOptionPane.showMessageDialog(addDialog, "Thêm khuyến mãi thành công!");
+		                    addDialog.dispose();
+		                } else {
+		                    JOptionPane.showMessageDialog(addDialog, "Thêm khuyến mãi không thành công!");
+		                }
+		                loadDataFromDatabase();
+		            } catch (Exception ex) {
+		                JOptionPane.showMessageDialog(addDialog, "Đã xảy ra lỗi khi thêm khuyến mãi!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		                ex.printStackTrace();
+		            }
+		        }
+		    });
+
+		    btnCancel.addActionListener(e1 -> addDialog.dispose());
+
+		    addDialog.setVisible(true);
+		}
+		
 }
 

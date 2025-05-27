@@ -38,10 +38,7 @@ public class gui_LoaiDichVu extends JPanel implements ActionListener{
 	private ArrayList<Object[]> originalData;
 	private JButton btnDelete;
 	private DaoLoaiPhong daolphong;
-	private JTextField txttenLoaiPhong;
-	private JTextField txtmota;
-	private JTextField txtgiaphonggio;
-	private JTextField txtgiaphongngay;
+
 	private JButton btnAdd;
 	private JTable tableService;
 	private DefaultTableModel tableServiceModel;
@@ -55,6 +52,8 @@ public class gui_LoaiDichVu extends JPanel implements ActionListener{
 	private JButton btnDeletedv;
 	private JButton btnResetdv;
 	private JButton btnAdddv;
+	private JTextField txtDV;
+	private JTextField txtLDV;
 	public gui_LoaiDichVu() {
 		daodv= new DaoDichVu();
 		daoldv= new DaoLoaiDV();
@@ -108,7 +107,7 @@ public class gui_LoaiDichVu extends JPanel implements ActionListener{
 	            if (e.getClickCount() == 2) {
 	                int selectedRow = table.getSelectedRow();
 	                if (selectedRow != -1) {
-	                    openUpdateDialog(selectedRow);
+	                    openUpdateDialogLDV(selectedRow);
 	                }
 	            }
 	        }
@@ -163,7 +162,17 @@ public class gui_LoaiDichVu extends JPanel implements ActionListener{
 	    tablePanel.add(scrollPaneLoaiPhong);
 	    tablePanel.add(headerPanel_dv);
 	    tablePanel.add(scrollPaneDichVu);
-
+	    tableService.addMouseListener(new MouseAdapter() {
+	        @Override
+	        public void mouseClicked(MouseEvent e) {
+	            if (e.getClickCount() == 2) {
+	                int selectedRow = tableService.getSelectedRow();
+	                if (selectedRow != -1) {
+	                    openUpdateDialogDV(selectedRow);
+	                }
+	            }
+	        }
+	    });
 	    add(tablePanel, BorderLayout.CENTER);
 
 	    // === SỰ KIỆN ===
@@ -191,22 +200,37 @@ public class gui_LoaiDichVu extends JPanel implements ActionListener{
 						deleteRow();
 					}
 					if (o.equals(btnAdd)) {
-					    JDialog addDialog = new JDialog();
-					    addDialog.setName("Thêm loại dịch vụ");
-					    addDialog.setSize(300, 200);
-					    addDialog.setLayout(new GridLayout(5, 2, 10, 10));
-					    addDialog.setLocationRelativeTo(this);
+						JDialog addDialog = new JDialog();
+						addDialog.setSize(350, 150);
+						addDialog.setTitle("Thêm loại dịch vụ");
+						addDialog.setLocationRelativeTo(this);
 
-					    JLabel lblName = new JLabel("Tên loại dịch vụ:");
-					    JTextField txtName = new JTextField();
-					    JButton btnSave = new JButton("Thêm");
-					    JButton btnCancel = new JButton("Hủy");
+						// Tạo panel chính với BoxLayout theo chiều dọc
+						JPanel mainPanel = new JPanel();
+						mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+						mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15)); // Padding 15px
 
-					    addDialog.add(lblName);
-					    addDialog.add(txtName);
-					    addDialog.add(btnSave);
-					    addDialog.add(btnCancel);
+						// Tạo panel cho ô nhập tên
+						JPanel namePanel = new JPanel(new BorderLayout(10, 10));
+						JLabel lblName = new JLabel("Tên loại dịch vụ:");
+						JTextField txtName = new JTextField();
+						namePanel.add(lblName, BorderLayout.WEST);
+						namePanel.add(txtName, BorderLayout.CENTER);
 
+						 // Tạo panel cho 2 nút bấm
+						JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+						JButton btnSave = new JButton("Thêm");
+						JButton btnCancel = new JButton("Hủy");
+						buttonPanel.add(btnSave);
+						buttonPanel.add(btnCancel);
+
+						    // Thêm vào panel chính
+						mainPanel.add(namePanel);
+						mainPanel.add(Box.createVerticalStrut(15)); // khoảng cách dọc
+						mainPanel.add(buttonPanel);
+
+						// Gán panel chính vào dialog
+						addDialog.setContentPane(mainPanel);
 					    btnSave.addActionListener(new ActionListener() {
 					        public void actionPerformed(ActionEvent e) {
 					        	daoldv= new DaoLoaiDV();
@@ -223,7 +247,6 @@ public class gui_LoaiDichVu extends JPanel implements ActionListener{
 					            	daoldv.themLoaiDV(ldv);
 					                JOptionPane.showMessageDialog(addDialog, "Thêm loại dịch vụ thành công!");
 					                addDialog.dispose();
-					                loadDataFromDatabaseLDV();
 					            } catch (NumberFormatException ex) {
 					                JOptionPane.showMessageDialog(addDialog, "Loại dịch vụ không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
 					            }
@@ -234,38 +257,47 @@ public class gui_LoaiDichVu extends JPanel implements ActionListener{
 					    addDialog.setVisible(true);
 					}
 					if (o.equals(btnAdddv)) {
-					    JDialog addDialog = new JDialog();
-					    addDialog.setName("Thêm dịch vụ");
-					    addDialog.setSize(300, 200);
-					    addDialog.setLayout(new GridLayout(5, 2, 10, 10));
-					    addDialog.setLocationRelativeTo(this);
+						JDialog addDialog = new JDialog();
+						addDialog.setTitle("Thêm dịch vụ");
+						addDialog.setSize(400, 300);
+						addDialog.setLocationRelativeTo(this);
 
-					    JLabel lblName = new JLabel("Tên dịch vụ:");
-					    JTextField txtName = new JTextField();
+						// Tạo panel chính và set padding
+						JPanel contentPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+						contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15)); // padding trái, trên, phải, dưới
 
-					    JLabel lblgia = new JLabel("Giá tiền:");
-					    JTextField txtgia = new JTextField();
-					    JLabel lblmota = new JLabel("Mô tả:");
-					    JTextField txtmota = new JTextField();
-					    JLabel lblgiangay = new JLabel("Mã loại dịch vụ:");
-					    JComboBox<String> cbMaLoaiDichVu = new JComboBox<>();
-					    for (LoaiDichVu ldv: dsldv) {
-					    	cbMaLoaiDichVu.addItem(ldv.getTenDV());
-					    }
-					    JButton btnSave = new JButton("Thêm");
-					    JButton btnCancel = new JButton("Hủy");
+						JLabel lblName = new JLabel("Tên dịch vụ:");
+						JTextField txtName = new JTextField();
 
-					    addDialog.add(lblName);
-					    addDialog.add(txtName);
-					    addDialog.add(lblgia);
-					    addDialog.add(txtgia);
-					    addDialog.add(lblmota);
-					    addDialog.add(txtmota);
-					    addDialog.add(lblgiangay);
-					    addDialog.add(cbMaLoaiDichVu);
-					    addDialog.add(btnSave);
-					    addDialog.add(btnCancel);
+						JLabel lblgia = new JLabel("Giá tiền:");
+						JTextField txtgia = new JTextField();
 
+						JLabel lblmota = new JLabel("Mô tả:");
+						JTextField txtmota = new JTextField();
+
+						JLabel lblgiangay = new JLabel("Mã loại dịch vụ:");
+						JComboBox<String> cbMaLoaiDichVu = new JComboBox<>();
+						for (LoaiDichVu ldv: dsldv) {
+						    cbMaLoaiDichVu.addItem(ldv.getTenDV());
+						}
+
+						JButton btnSave = new JButton("Thêm");
+						JButton btnCancel = new JButton("Hủy");
+
+						// Thêm vào contentPanel
+						contentPanel.add(lblName);
+						contentPanel.add(txtName);
+						contentPanel.add(lblgia);
+						contentPanel.add(txtgia);
+						contentPanel.add(lblmota);
+						contentPanel.add(txtmota);
+						contentPanel.add(lblgiangay);
+						contentPanel.add(cbMaLoaiDichVu);
+						contentPanel.add(btnSave);
+						contentPanel.add(btnCancel);
+
+						// Gán contentPanel vào JDialog
+						addDialog.setContentPane(contentPanel);
 					    btnSave.addActionListener(new ActionListener() {
 					        public void actionPerformed(ActionEvent e) {
 					        	String name = txtName.getText().trim();
@@ -389,43 +421,105 @@ public class gui_LoaiDichVu extends JPanel implements ActionListener{
 	        originalData.add(row); // Lưu dữ liệu để reset/tìm kiếm
 	    }
 	}
-	private void openUpdateDialog(int row) {
+	private void openUpdateDialogLDV(int row) {
         // Lấy thông tin hiện tại từ bảng
-        String tenLoaiPhong = (String) tableModel.getValueAt(row, 1);
-        String moTa = (String) tableModel.getValueAt(row, 2);
-        String giaphonggio = tableModel.getValueAt(row, 3).toString();
-        String giaphongngay = tableModel.getValueAt(row, 4).toString();
+		String maLDV = tableModel.getValueAt(row,0).toString();
+        String tenDV = (String) tableModel.getValueAt(row, 1);
         
         // Tạo các trường nhập liệu với dữ liệu ban đầu
-        txttenLoaiPhong = new JTextField(tenLoaiPhong);
-        txtmota	= new JTextField(moTa);
-        txtgiaphonggio = new JTextField(giaphonggio);
-        txtgiaphongngay = new JTextField(giaphongngay);
+        txtLDV = new JTextField(tenDV);
         
         // Sắp xếp các trường nhập liệu trong một panel
         JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
-        panel.add(new JLabel("Tên loại phòng:"));
-        panel.add(txttenLoaiPhong);
-        panel.add(new JLabel("Mô tả loại phòng:"));
-        panel.add(txtmota);
-        panel.add(new JLabel("Giá phòng theo giờ:"));
-        panel.add(txtgiaphonggio);
-        panel.add(new JLabel("Giá phòng theo ngày:"));
-        panel.add(txtgiaphongngay);
+        panel.add(new JLabel("Tên loại dịch vụ:"));
+        panel.add(txtLDV);
+    
+        
+        int result = JOptionPane.showConfirmDialog(
+                this, panel, "Cập nhật thông tin Dịch Vụ",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        
+        if (result == JOptionPane.OK_OPTION) {
+            // Cập nhật thông tin vào bảng
+            tableModel.setValueAt(maLDV, row, 0);
+            tableModel.setValueAt(txtLDV, row, 1);
+            LoaiDichVu dv_new =new LoaiDichVu(maLDV, txtLDV.getText());
+            if(daoldv.capnhatLoaiDichVu(dv_new)) {
+            	JOptionPane.showMessageDialog(null,"Cập nhật loại dịch vụ thành công");
+            	return;
+            }else {
+            	JOptionPane.showMessageDialog(null,"Cập nhật loại dịch vụ thất bại");
+            	return;
+            }
+            }
+            
+    }
+	private void openUpdateDialogDV(int row) {
+		// Lấy thông tin hiện tại từ bảng
+		String maDV = tableServiceModel.getValueAt(row, 0).toString();
+		String tenDV = tableServiceModel.getValueAt(row, 1).toString();
+		String giatien = tableServiceModel.getValueAt(row, 2).toString();
+		// Bước 1: Loại bỏ dấu chấm và VND
+		String giatienChuoi = giatien.replace(".", "").replace("VND", "").trim();
+		String trangthai = tableServiceModel.getValueAt(row, 3).toString();
+		String mota = tableServiceModel.getValueAt(row, 4).toString();
+		String maldv = tableServiceModel.getValueAt(row, 5).toString();
+
+		// Tạo các trường nhập liệu với dữ liệu ban đầu
+		JTextField txtTenDV = new JTextField(tenDV);
+		JTextField txtGiaTien = new JTextField(giatienChuoi);
+		String[] dsTrangThai = {"Còn","Hết"};
+		JComboBox<String> cbTrangThai = new JComboBox<>(dsTrangThai);
+		cbTrangThai.setSelectedItem(trangthai);
+		JTextField txtMoTa = new JTextField(mota);
+		JTextField txtMaLoaiDV = new JTextField(maldv);
+		JLabel lblmaloaidv = new JLabel("Mã loại dịch vụ:");
+		JComboBox<String> cbMaLoaiDichVu = new JComboBox<>();
+		for (LoaiDichVu ldv: dsldv) {
+		    cbMaLoaiDichVu.addItem(ldv.getTenDV());
+		}
+
+		// Tạo panel chứa form
+		JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
+		panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15)); // Padding khỏi viền
+
+		panel.add(new JLabel("Tên dịch vụ:"));
+		panel.add(txtTenDV);
+
+		panel.add(new JLabel("Giá tiền:"));
+		panel.add(txtGiaTien);
+
+		panel.add(new JLabel("Trạng thái:"));
+		panel.add(cbTrangThai);
+
+		panel.add(new JLabel("Mô tả:"));
+		panel.add(txtMoTa);
+
+		panel.add(lblmaloaidv);
+		panel.add(cbMaLoaiDichVu);
         
         int result = JOptionPane.showConfirmDialog(
                 this, panel, "Cập nhật thông tin loại phòng",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         
         if (result == JOptionPane.OK_OPTION) {
-            // Cập nhật thông tin vào bảng
-            tableModel.setValueAt(tenPhongField.getText(), row, 0);
-            tableModel.setValueAt(tenKhachHangField.getText(), row, 1);
-            tableModel.setValueAt(sdtField.getText(), row, 2);
-            tableModel.setValueAt(kieuThueField.getText(), row, 3);
-            LoaiPhong lphpng = new LoaiPhong(tableModel.getValueAt(row, 0).toString(), tenLoaiPhong, moTa, Double.parseDouble(giaphonggio),Double.parseDouble(giaphonggio));
-            // Ở ứng dụng thực tế, bạn có thể cập nhật thêm các thông tin ngày giờ đặt/trả vào cơ sở dữ liệu hoặc một model riêng.
-            daolphong.capnhatLoaiPhong(lphpng);
+            // Lấy dữ liệu từ các trường nhập liệu
+            String newTenDV = txtTenDV.getText().trim();
+            String newGiaTien = txtGiaTien.getText().trim();
+            String newTrangThai = cbTrangThai.getSelectedItem().toString();
+            String newMoTa = txtMoTa.getText().trim();
+            String selectedLoaiDV = cbMaLoaiDichVu.getSelectedItem().toString();
+            LoaiDichVu ldv= daoldv.getLoaiDVTheoMa(selectedLoaiDV);
+            // Cập nhật thông tin vào tableServiceModel (giả sử đây là DefaultTableModel)
+            tableServiceModel.setValueAt(newTenDV, row, 1);
+            tableServiceModel.setValueAt(newGiaTien, row, 2);
+            tableServiceModel.setValueAt(newTrangThai, row, 3);
+            tableServiceModel.setValueAt(newMoTa, row, 4);
+            tableServiceModel.setValueAt(selectedLoaiDV, row, 5); // Giả sử bạn hiển thị tên loại DV ở cột này
+            boolean isCon = cbTrangThai.getSelectedItem().toString().equalsIgnoreCase("Còn");
+            // Nếu có thao tác cập nhật vào DB hoặc một model riêng thì thực hiện ở đây
+            DichVu dv = new DichVu(maDV, tenDV, newMoTa, Double.parseDouble(newGiaTien),isCon, ldv);
+            daodv.capnhatDichVu(dv);
         }
     }
 	private String formatCurrencyVND(double amount) {

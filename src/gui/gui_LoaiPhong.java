@@ -2,6 +2,7 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -28,6 +29,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 import dao.DaoCTPhieuDP;
@@ -143,43 +145,73 @@ public class gui_LoaiPhong extends JPanel implements ActionListener {
 	     */
 	    private void openUpdateDialog(int row) {
 	        // Lấy thông tin hiện tại từ bảng
-	        String tenLoaiPhong = (String) tableModel.getValueAt(row, 1);
-	        String moTa = (String) tableModel.getValueAt(row, 2);
-	        String giaphonggio = tableModel.getValueAt(row, 3).toString();
-	        String giaphongngay = tableModel.getValueAt(row, 4).toString();
-	        
-	        // Tạo các trường nhập liệu với dữ liệu ban đầu
-	        txttenLoaiPhong = new JTextField(tenLoaiPhong);
-	        txtmota	= new JTextField(moTa);
-	        txtgiaphonggio = new JTextField(giaphonggio);
-	        txtgiaphongngay = new JTextField(giaphongngay);
-	        
-	        // Sắp xếp các trường nhập liệu trong một panel
-	        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
+	        String tenLoaiPhong     = (String) tableModel.getValueAt(row, 1);
+	        String moTa             = (String) tableModel.getValueAt(row, 2);
+	        String giaphonggio      = tableModel.getValueAt(row, 3).toString();
+	        String giaphongngay     = tableModel.getValueAt(row, 4).toString();
+
+	        // Tạo dialog
+	        JDialog dialog = new JDialog();
+	        dialog.setTitle("Cập nhật thông tin loại phòng");
+	        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+	        dialog.setSize(400, 250);             // Kích thước cố định
+	        dialog.setResizable(false);           // Không cho resize
+	        dialog.setLocationRelativeTo(this);   // Canh giữa
+
+	        // Tạo panel nhập liệu với GridLayout
+	        JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
+	        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 	        panel.add(new JLabel("Tên loại phòng:"));
-	        panel.add(txttenLoaiPhong);
+	        JTextField txtTenLoaiPhong    = new JTextField(tenLoaiPhong);
+	        panel.add(txtTenLoaiPhong);
+
 	        panel.add(new JLabel("Mô tả loại phòng:"));
-	        panel.add(txtmota);
+	        JTextField txtMoTa            = new JTextField(moTa);
+	        panel.add(txtMoTa);
+
 	        panel.add(new JLabel("Giá phòng theo giờ:"));
-	        panel.add(txtgiaphonggio);
+	        JTextField txtGiaGio          = new JTextField(giaphonggio);
+	        panel.add(txtGiaGio);
+
 	        panel.add(new JLabel("Giá phòng theo ngày:"));
-	        panel.add(txtgiaphongngay);
-	        
-	        int result = JOptionPane.showConfirmDialog(
-	                this, panel, "Cập nhật thông tin loại phòng",
-	                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-	        
-	        if (result == JOptionPane.OK_OPTION) {
-	            // Cập nhật thông tin vào bảng
-	            tableModel.setValueAt(tenPhongField.getText(), row, 0);
-	            tableModel.setValueAt(tenKhachHangField.getText(), row, 1);
-	            tableModel.setValueAt(sdtField.getText(), row, 2);
-	            tableModel.setValueAt(kieuThueField.getText(), row, 3);
-	            LoaiPhong lphpng = new LoaiPhong(tableModel.getValueAt(row, 0).toString(), tenLoaiPhong, moTa, Double.parseDouble(giaphonggio),Double.parseDouble(giaphonggio));
-	            // Ở ứng dụng thực tế, bạn có thể cập nhật thêm các thông tin ngày giờ đặt/trả vào cơ sở dữ liệu hoặc một model riêng.
-	            daolphong.capnhatLoaiPhong(lphpng);
+	        JTextField txtGiaNgay         = new JTextField(giaphongngay);
+	        panel.add(txtGiaNgay);
+
+	        // Panel chứa nút
+	        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+	        JButton btnSave   = new JButton("Lưu");
+	        JButton btnCancel = new JButton("Hủy");
+	        buttonPanel.add(btnSave);
+	        buttonPanel.add(btnCancel);
+
+	        // Xử lý sự kiện nút
+	        btnSave.addActionListener(e -> {
+	            // Cập nhật model và database
+	            tableModel.setValueAt(txtTenLoaiPhong.getText(), row, 1);
+	            tableModel.setValueAt(txtMoTa.getText(), row, 2);
+	            tableModel.setValueAt(txtGiaGio.getText(), row, 3);
+	            tableModel.setValueAt(txtGiaNgay.getText(), row, 4);
+
+	            LoaiPhong lp = new LoaiPhong(
+	                /* id lấy từ cột 0 */ tableModel.getValueAt(row, 0).toString(),
+	                txtTenLoaiPhong.getText(),
+	                txtMoTa.getText(),
+	                Double.parseDouble(txtGiaGio.getText()),
+	                Double.parseDouble(txtGiaNgay.getText())
+	            );
+	            daolphong.capnhatLoaiPhong(lp);
+	            dialog.dispose();
+	        });
+	        btnCancel.addActionListener(e -> dialog.dispose());
+
+	        // Lấy content pane, thêm các panel
+	        Container cp = dialog.getContentPane();
+	        cp.setLayout(new BorderLayout());
+	        cp.add(panel, BorderLayout.CENTER);
+	        cp.add(buttonPanel, BorderLayout.SOUTH);
+
+	        dialog.setVisible(true);
 	        }
-	    }
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -195,40 +227,51 @@ public class gui_LoaiPhong extends JPanel implements ActionListener {
 				deleteRow();
 			}
 			if (o.equals(btnAdd)) {
-			    JDialog addDialog = new JDialog();
-			    addDialog.setSize(300, 200);
-			    addDialog.setLayout(new GridLayout(5, 2, 10, 10));
-			    addDialog.setLocationRelativeTo(this);
+				JDialog addDialog = new JDialog();
+		        addDialog.setSize(300, 200);
+		        addDialog.setLocationRelativeTo(this);
+		        addDialog.setTitle("Thêm loại phòng");
+		        // 1. Tạo panel chính với GridLayout và thêm EmptyBorder để tạo khoảng cách
+		        JPanel content = new JPanel(new GridLayout(5, 2, 10, 10));
+		        content.setBorder(new EmptyBorder(15, 15, 15, 15)); // top, left, bottom, right
 
-			    JLabel lblName = new JLabel("Tên loại phòng:");
-			    JTextField txtName = new JTextField();
+		        // 2. Tạo các thành phần
+		        JLabel lblName    = new JLabel("Tên loại phòng:");
+		        JTextField txtName = new JTextField();
 
-			    JLabel lblmota = new JLabel("Mô tả loại phòng:");
-			    JTextField txtmota = new JTextField();
-			    JLabel lblgiagio = new JLabel("Giá theo giờ:");
-			    JTextField txtgiagio = new JTextField();
-			    JLabel lblgiangay = new JLabel("Giá theo ngày:");
-			    JTextField txtngay = new JTextField();
-			    JButton btnSave = new JButton("Lưu");
-			    JButton btnCancel = new JButton("Hủy");
+		        JLabel lblMota    = new JLabel("Mô tả loại phòng:");
+		        JTextField txtMota = new JTextField();
 
-			    addDialog.add(lblName);
-			    addDialog.add(txtName);
-			    addDialog.add(lblmota);
-			    addDialog.add(txtmota);
-			    addDialog.add(lblgiagio);
-			    addDialog.add(txtgiagio);
-			    addDialog.add(lblgiangay);
-			    addDialog.add(txtngay);
-			    addDialog.add(btnSave);
-			    addDialog.add(btnCancel);
+		        JLabel lblGiaGio  = new JLabel("Giá theo giờ:");
+		        JTextField txtGiaGio = new JTextField();
+
+		        JLabel lblGiaNgay = new JLabel("Giá theo ngày:");
+		        JTextField txtNgay   = new JTextField();
+
+		        JButton btnSave   = new JButton("Lưu");
+		        JButton btnCancel = new JButton("Hủy");
+
+		        // 3. Thêm vào panel
+		        content.add(lblName);
+		        content.add(txtName);
+		        content.add(lblMota);
+		        content.add(txtMota);
+		        content.add(lblGiaGio);
+		        content.add(txtGiaGio);
+		        content.add(lblGiaNgay);
+		        content.add(txtNgay);
+		        content.add(btnSave);
+		        content.add(btnCancel);
+
+		        // 4. Đưa panel vào dialog
+		        addDialog.setContentPane(content);
 
 			    btnSave.addActionListener(new ActionListener() {
 			        public void actionPerformed(ActionEvent e) {
 			            String name = txtName.getText().trim();
-			            String mota = txtmota.getText().trim();
-			            Double giaphonggio= Double.parseDouble(txtgiagio.getText().trim());
-			            Double giaphongngay= Double.parseDouble(txtngay.getText().trim());
+			            String mota = txtMota.getText().trim();
+			            Double giaphonggio= Double.parseDouble(txtGiaGio.getText().trim());
+			            Double giaphongngay= Double.parseDouble(txtNgay.getText().trim());
 			            if (name.isEmpty()) {
 			                JOptionPane.showMessageDialog(addDialog, "Vui lòng nhập đầy đủ thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
 			                return;
@@ -236,15 +279,10 @@ public class gui_LoaiPhong extends JPanel implements ActionListener {
 
 			            try {
 			            	String malphong=daolphong.taomaLP(dslphong);
-			            	LoaiPhong lphong = new LoaiPhong(mota, name, mota, giaphonggio, giaphongngay);
+			            	LoaiPhong lphong = new LoaiPhong(malphong, name, mota, giaphonggio, giaphongngay);
 			                daolphong.themLoaiPhong(lphong);
-			                
-		
-
 			                JOptionPane.showMessageDialog(addDialog, "Thêm loại phòng thành công!");
 			                addDialog.dispose();
-
-			                loadDataFromDatabase();; // Tải lại bảng sau khi thêm
 			            } catch (NumberFormatException ex) {
 			                JOptionPane.showMessageDialog(addDialog, "Giá phòng không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
 			            }
@@ -252,8 +290,8 @@ public class gui_LoaiPhong extends JPanel implements ActionListener {
 			    });
 
 			    btnCancel.addActionListener(e1 -> addDialog.dispose());
-
 			    addDialog.setVisible(true);
+			    loadDataFromDatabase();
 			}
 		}
 
@@ -262,14 +300,19 @@ public class gui_LoaiPhong extends JPanel implements ActionListener {
 			int selectedRow = table.getSelectedRow();
 
 		    if (selectedRow == -1) {
-		        JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng cần xóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+		        JOptionPane.showMessageDialog(this, "Vui lòng chọn loại phòng cần xóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
 		        return;
 		    }
 
-		    int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa dòng này?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
+		    int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
 		    if (confirm == JOptionPane.YES_OPTION) {
+		    	String mlp= tableModel.getValueAt(selectedRow, 0).toString();
 		        tableModel.removeRow(selectedRow);
-		        JOptionPane.showMessageDialog(this, "Đã xóa dòng thành công!");
+		        if(daolphong.xoaLoaiPhong(mlp)) {
+		        	JOptionPane.showMessageDialog(this, "Đã xóa thành công!");
+		        }else {
+		        	JOptionPane.showMessageDialog(this, "Xóa không thành công!");
+		        }
 		    }
 		}
 
@@ -298,7 +341,7 @@ public class gui_LoaiPhong extends JPanel implements ActionListener {
 			        }
 			    } else {
 			        for (Object[] row : originalData) {
-			            String maPhieu = row[0].toString().toLowerCase(); // Cột "Mã phiếu đặt phòng"
+			            String maPhieu = row[1].toString().toLowerCase(); // Cột "Mã phiếu đặt phòng"
 			            if (maPhieu.contains(searchTerm)) {
 			                tableModel.addRow(row);
 			            }

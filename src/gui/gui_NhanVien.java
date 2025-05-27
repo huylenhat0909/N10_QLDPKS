@@ -11,6 +11,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -19,6 +22,7 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -28,6 +32,8 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
+
+import com.toedter.calendar.JDateChooser;
 
 import dao.DaoCTPhieuDP;
 import dao.DaoKhachHang;
@@ -68,8 +74,10 @@ public class gui_NhanVien extends JPanel implements ActionListener {
 		private List<LoaiPhong> dslphong;
 		private DaoNhanVien daonv;
 		private List<NhanVien> dsnv;
-		private Component txtemail;
+		private JTextField txtemail;
 		private JTextField txtgioitinh;
+		private JTextField txtchucvu;
+		private Object selectedDate;
 		
 
 	    public gui_NhanVien() {
@@ -147,49 +155,124 @@ public class gui_NhanVien extends JPanel implements ActionListener {
 	     */
 	    private void openUpdateDialog(int row) {
 	        // Lấy thông tin hiện tại từ bảng
-	        String tenLoaiPhong = (String) tableModel.getValueAt(row, 1);
-	        String moTa = (String) tableModel.getValueAt(row, 2);
-	        String giaphonggio = tableModel.getValueAt(row, 3).toString();
-	        String giaphongngay = tableModel.getValueAt(row, 4).toString();
-	        String gioitinh =  tableModel.getValueAt(row, 5).toString();
+	        String maNV = tableModel.getValueAt(row, 0).toString();
+	        String tenNV = (String) tableModel.getValueAt(row, 1);
+	        String socccd = (String) tableModel.getValueAt(row, 2);
+	        String ngaysinh = tableModel.getValueAt(row, 3).toString();
+	        String gioitinh = tableModel.getValueAt(row, 4).toString();
+	        String sdt = tableModel.getValueAt(row, 5).toString();
 	        String email = tableModel.getValueAt(row, 6).toString();
 	        String chucvu = tableModel.getValueAt(row, 7).toString();
+
 	        // Tạo các trường nhập liệu với dữ liệu ban đầu
-	        txttenLoaiPhong = new JTextField(tenLoaiPhong);
-	        txtmota	= new JTextField(moTa);
-	        txtgiaphonggio = new JTextField(giaphonggio);
-	        txtgiaphongngay = new JTextField(giaphongngay);
+	        txttenLoaiPhong = new JTextField(tenNV);
+	        txtmota = new JTextField(socccd);
+	        txtgiaphongngay = new JTextField(sdt);
 	        txtemail = new JTextField(email);
-	        txtgioitinh= new JTextField(gioitinh);
-	        // Sắp xếp các trường nhập liệu trong một panel
+
+	        // Giới tính
+	        String[] gioiTinhOptions = {"Nam", "Nữ"};
+	        JComboBox<String> cbGioiTinh = new JComboBox<>(gioiTinhOptions);
+	        cbGioiTinh.setSelectedItem(gioitinh);
+
+	        // Chức vụ
+	        String[] chucVuOptions = {"Lễ tân", "Quản lý"};
+	        JComboBox<String> cbChucVu = new JComboBox<>(chucVuOptions);
+	        cbChucVu.setSelectedItem(chucvu);
+
+	        // Ngày sinh
+	        JDateChooser dateChooser = new JDateChooser();
+	        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+	        try {
+	            java.util.Date date = sdf.parse(ngaysinh);
+	            dateChooser.setDate(date);
+	        } catch (ParseException e) {
+	            e.printStackTrace();
+	        }
+
+	        // Panel nhập liệu
 	        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
 	        panel.add(new JLabel("Tên nhân viên:"));
 	        panel.add(txttenLoaiPhong);
-	        panel.add(new JLabel("Số căn cước công dân:"));
+	        panel.add(new JLabel("Số CCCD:"));
 	        panel.add(txtmota);
-	        panel.add(new JLabel("Ngày Sinh:"));
-	        panel.add(txtgiaphonggio);
+	        panel.add(new JLabel("Ngày sinh:"));
+	        panel.add(dateChooser);
 	        panel.add(new JLabel("Giới tính:"));
-	        panel.add(txtgioitinh);
+	        panel.add(cbGioiTinh);
 	        panel.add(new JLabel("Số điện thoại:"));
 	        panel.add(txtgiaphongngay);
 	        panel.add(new JLabel("Email:"));
-	        panel.add(txtemail);	        
+	        panel.add(txtemail);
+	        panel.add(new JLabel("Chức vụ:"));
+	        panel.add(cbChucVu);
+
 	        int result = JOptionPane.showConfirmDialog(
-	                this, panel, "Cập nhật thông tin loại phòng",
-	                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-	        
+	            this, panel, "Cập nhật thông tin nhân viên",
+	            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
 	        if (result == JOptionPane.OK_OPTION) {
-	            // Cập nhật thông tin vào bảng
-	            tableModel.setValueAt(tenPhongField.getText(), row, 0);
-	            tableModel.setValueAt(tenKhachHangField.getText(), row, 1);
-	            tableModel.setValueAt(sdtField.getText(), row, 2);
-	            tableModel.setValueAt(kieuThueField.getText(), row, 3);
-	            LoaiPhong lphpng = new LoaiPhong(tableModel.getValueAt(row, 0).toString(), tenLoaiPhong, moTa, Double.parseDouble(giaphonggio),Double.parseDouble(giaphonggio));
-	            // Ở ứng dụng thực tế, bạn có thể cập nhật thêm các thông tin ngày giờ đặt/trả vào cơ sở dữ liệu hoặc một model riêng.
-	            daolphong.capnhatLoaiPhong(lphpng);
+	            String tennv = txttenLoaiPhong.getText().trim();
+	            String soCCCD = txtmota.getText().trim();
+	            String SDT = txtgiaphongngay.getText().trim();
+	            String EMAIL = txtemail.getText().trim();
+	            boolean GIOITINH = cbGioiTinh.getSelectedItem().toString().equalsIgnoreCase("Nam");
+	            String CHUCVU = cbChucVu.getSelectedItem().toString();
+	            java.util.Date utilDate = dateChooser.getDate();
+
+	            // Kiểm tra dữ liệu
+	            if (tennv.isEmpty() || soCCCD.isEmpty() || SDT.isEmpty() || EMAIL.isEmpty() || utilDate == null) {
+	                JOptionPane.showMessageDialog(null, "Vui lòng nhập đầy đủ thông tin.");
+	                return;
+	            }
+
+	            if (tennv.matches(".*\\d.*")) {
+	                JOptionPane.showMessageDialog(null, "Tên không được chứa ký tự số!");
+	                txttenLoaiPhong.requestFocus();
+	                return;
+	            }
+
+	            if (!soCCCD.matches("\\d{9,12}")) {
+	                JOptionPane.showMessageDialog(null, "Số CCCD phải là 9 đến 12 chữ số.");
+	                txtmota.requestFocus();
+	                return;
+	            }
+
+	            if (!SDT.matches("^(03|09|07|08|05)\\d{8}$")) {
+	                JOptionPane.showMessageDialog(null, "Số điện thoại không hợp lệ.");
+	                txtgiaphongngay.requestFocus();
+	                return;
+	            }
+
+	            if (!EMAIL.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$")) {
+	                JOptionPane.showMessageDialog(null, "Email không hợp lệ.");
+	                txtemail.requestFocus();
+	                return;
+	            }
+
+	            // ==== CHUYỂN java.util.Date -> java.sql.Date ====
+	            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+
+	            // Cập nhật vào model bảng
+	            tableModel.setValueAt(tennv, row, 1);
+	            tableModel.setValueAt(soCCCD, row, 2);
+	            tableModel.setValueAt(sdf.format(utilDate), row, 3); // hiển thị yyyy-MM-dd
+	            tableModel.setValueAt(cbGioiTinh.getSelectedItem().toString(), row, 4);
+	            tableModel.setValueAt(SDT, row, 5);
+	            tableModel.setValueAt(EMAIL, row, 6);
+	            tableModel.setValueAt(CHUCVU, row, 7);
+
+	            // Gửi vào database
+	            NhanVien nv = new NhanVien(maNV, tennv, soCCCD, sqlDate, GIOITINH, SDT, EMAIL, CHUCVU);
+
+	            if (daonv.capnhatNhanVien(nv)) {
+	                JOptionPane.showMessageDialog(null, "Cập nhật thông tin nhân viên thành công!");
+	            } else {
+	                JOptionPane.showMessageDialog(null, "Cập nhật thông tin nhân viên không thành công!");
+	            }
 	        }
 	    }
+
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -205,65 +288,7 @@ public class gui_NhanVien extends JPanel implements ActionListener {
 				deleteRow();
 			}
 			if (o.equals(btnAdd)) {
-			    JDialog addDialog = new JDialog();
-			    addDialog.setSize(300, 200);
-			    addDialog.setLayout(new GridLayout(5, 2, 10, 10));
-			    addDialog.setLocationRelativeTo(this);
-
-			    JLabel lblName = new JLabel("Tên loại phòng:");
-			    JTextField txtName = new JTextField();
-
-			    JLabel lblmota = new JLabel("Mô tả loại phòng:");
-			    JTextField txtmota = new JTextField();
-			    JLabel lblgiagio = new JLabel("Giá theo giờ:");
-			    JTextField txtgiagio = new JTextField();
-			    JLabel lblgiangay = new JLabel("Giá theo ngày:");
-			    JTextField txtngay = new JTextField();
-			    JButton btnSave = new JButton("Lưu");
-			    JButton btnCancel = new JButton("Hủy");
-
-			    addDialog.add(lblName);
-			    addDialog.add(txtName);
-			    addDialog.add(lblmota);
-			    addDialog.add(txtmota);
-			    addDialog.add(lblgiagio);
-			    addDialog.add(txtgiagio);
-			    addDialog.add(lblgiangay);
-			    addDialog.add(txtngay);
-			    addDialog.add(btnSave);
-			    addDialog.add(btnCancel);
-
-			    btnSave.addActionListener(new ActionListener() {
-			        public void actionPerformed(ActionEvent e) {
-			            String name = txtName.getText().trim();
-			            String mota = txtmota.getText().trim();
-			            Double giaphonggio= Double.parseDouble(txtgiagio.getText().trim());
-			            Double giaphongngay= Double.parseDouble(txtngay.getText().trim());
-			            if (name.isEmpty()) {
-			                JOptionPane.showMessageDialog(addDialog, "Vui lòng nhập đầy đủ thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-			                return;
-			            }
-
-			            try {
-			            	String malphong=daolphong.taomaLP(dslphong);
-			            	LoaiPhong lphong = new LoaiPhong(mota, name, mota, giaphonggio, giaphongngay);
-			                daolphong.themLoaiPhong(lphong);
-			                
-		
-
-			                JOptionPane.showMessageDialog(addDialog, "Thêm loại phòng thành công!");
-			                addDialog.dispose();
-
-			                loadDataFromDatabase();; // Tải lại bảng sau khi thêm
-			            } catch (NumberFormatException ex) {
-			                JOptionPane.showMessageDialog(addDialog, "Giá phòng không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-			            }
-			        }
-			    });
-
-			    btnCancel.addActionListener(e1 -> addDialog.dispose());
-
-			    addDialog.setVisible(true);
+			    openAddNhanVienDialog();
 			}
 		}
 
@@ -317,10 +342,8 @@ public class gui_NhanVien extends JPanel implements ActionListener {
 		}
 		private void loadDataFromDatabase() {
 			dsnv = daonv.getDatabase();
-
 		    tableModel.setRowCount(0); // Xóa dữ liệu cũ
 		    originalData.clear();      // Xóa dữ liệu gốc
-
 		    for (NhanVien pdp : dsnv) {
 		    	String gioitinh="Nữ";
 		    	if(pdp.getGioiTinh()) {
@@ -339,6 +362,116 @@ public class gui_NhanVien extends JPanel implements ActionListener {
 		        tableModel.addRow(row);
 		        originalData.add(row); // Lưu dữ liệu để reset/tìm kiếm
 		    }
+		}
+		private void openAddNhanVienDialog() {
+			JDialog addDialog = new JDialog();
+			addDialog.setTitle("Thêm Nhân Viên"); // Đặt tên cho dialog
+			addDialog.setSize(400, 300);
+			addDialog.setLocationRelativeTo(this);
+
+			// Tạo panel với padding
+			JPanel contentPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+			contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15)); // top, left, bottom, right
+
+			// Tạo các thành phần giao diện nhập thông tin nhân viên
+			JLabel lblTenNV = new JLabel("Tên nhân viên:");
+			JTextField txtTenNV = new JTextField();
+
+			JLabel lblCCCD = new JLabel("Số CCCD:");
+			JTextField txtCCCD = new JTextField();
+
+			JLabel lblNgaySinh = new JLabel("Ngày sinh:");
+			JDateChooser dateChooser = new JDateChooser();
+
+			JLabel lblGioiTinh = new JLabel("Giới tính:");
+			JComboBox<String> cbGioiTinh = new JComboBox<>(new String[]{"Nam", "Nữ"});
+
+			JLabel lblSDT = new JLabel("Số điện thoại:");
+			JTextField txtSDT = new JTextField();
+
+			JLabel lblEmail = new JLabel("Email:");
+			JTextField txtEmail = new JTextField();
+
+			JLabel lblChucVu = new JLabel("Chức vụ:");
+			JComboBox<String> cbChucVu = new JComboBox<>(new String[]{"Lễ tân", "Quản lý"});
+
+			JButton btnSave = new JButton("Lưu");
+			JButton btnCancel = new JButton("Hủy");
+
+			// Thêm các thành phần vào contentPanel
+			contentPanel.add(lblTenNV); contentPanel.add(txtTenNV);
+			contentPanel.add(lblCCCD); contentPanel.add(txtCCCD);
+			contentPanel.add(lblNgaySinh); contentPanel.add(dateChooser);
+			contentPanel.add(lblGioiTinh); contentPanel.add(cbGioiTinh);
+			contentPanel.add(lblSDT); contentPanel.add(txtSDT);
+			contentPanel.add(lblEmail); contentPanel.add(txtEmail);
+			contentPanel.add(lblChucVu); contentPanel.add(cbChucVu);
+			contentPanel.add(btnSave); contentPanel.add(btnCancel);
+
+			// Gán contentPanel vào dialog
+			addDialog.setContentPane(contentPanel);
+		    // Sự kiện nút lưu
+		    btnSave.addActionListener(new ActionListener() {
+		        public void actionPerformed(ActionEvent e) {
+		            String tenNV = txtTenNV.getText().trim();
+		            String cccd = txtCCCD.getText().trim();
+		            java.util.Date ngaySinhUtil = dateChooser.getDate();
+		            String gioiTinh = cbGioiTinh.getSelectedItem().toString();
+		            String sdt = txtSDT.getText().trim();
+		            String email = txtEmail.getText().trim();
+		            String chucVu = cbChucVu.getSelectedItem().toString();
+
+		            if (tenNV.isEmpty() || cccd.isEmpty() || ngaySinhUtil == null || sdt.isEmpty() || email.isEmpty()) {
+		                JOptionPane.showMessageDialog(addDialog, "Vui lòng nhập đầy đủ thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		                return;
+		            }
+
+		            if (tenNV.matches(".*\\d.*")) {
+		                JOptionPane.showMessageDialog(addDialog, "Tên không được chứa số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		                txtTenNV.requestFocus();
+		                return;
+		            }
+
+		            if (!cccd.matches("\\d{9,12}")) {
+		                JOptionPane.showMessageDialog(addDialog, "CCCD phải là 9-12 chữ số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		                txtCCCD.requestFocus();
+		                return;
+		            }
+
+		            if (!sdt.matches("^(03|09)\\d{8}$")) {
+		                JOptionPane.showMessageDialog(addDialog, "Số điện thoại không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		                txtSDT.requestFocus();
+		                return;
+		            }
+
+		            if (!email.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$")) {
+		                JOptionPane.showMessageDialog(addDialog, "Email không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		                txtEmail.requestFocus();
+		                return;
+		            }
+
+		            try {
+		                String maNV = daonv.taomaNV(dsnv); // Tự tạo mã nhân viên
+		                boolean gt = gioiTinh.equalsIgnoreCase("Nam");
+		                java.sql.Date sqlDate = new java.sql.Date(ngaySinhUtil.getTime());
+		                NhanVien nv = new NhanVien(maNV, tenNV, cccd, sqlDate, gt, sdt, email, chucVu);
+
+		                if (daonv.themNhanVien(nv)) {
+		                    JOptionPane.showMessageDialog(addDialog, "Thêm nhân viên thành công!");
+		                    addDialog.dispose();
+		                } else {
+		                    JOptionPane.showMessageDialog(addDialog, "Thêm nhân viên thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		                }
+		            } catch (Exception ex) {
+		                ex.printStackTrace();
+		                JOptionPane.showMessageDialog(addDialog, "Đã xảy ra lỗi!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		            }
+		        }
+		    });
+
+		    btnCancel.addActionListener(e1 -> addDialog.dispose());
+
+		    addDialog.setVisible(true);
 		}
 }
 

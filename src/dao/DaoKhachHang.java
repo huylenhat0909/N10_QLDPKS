@@ -126,14 +126,16 @@ public class DaoKhachHang {
 		}
 		return n>0;
 	}
-	public boolean xoaKhachHang(KhachHang kh) {
+	public boolean xoaKhachHang(String makh) {
 		int n=0;
 		try {
 			ConnectDB.getInstance();
 			Connection con= ConnectDB.getConnection();
 			String sql="DELETE FROM KhachHang Where maKH=?";
 			PreparedStatement statement= con.prepareStatement(sql);
-			statement.setString(1, kh.getMaKH());
+			statement.setString(1, makh);
+			n = statement.executeUpdate();
+			statement.close();
 		}catch (SQLException e) {
 			// TODO: handle exception
 			e.printStackTrace();

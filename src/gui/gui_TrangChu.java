@@ -11,6 +11,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class gui_TrangChu extends JFrame {
     private JPanel menuPanel;
@@ -83,7 +84,7 @@ public class gui_TrangChu extends JFrame {
         addMenuWithoutSubmenu(menuPanel, "Khách hàng","icon/office-man (1).png");
         addMenuItem(menuPanel, "Nhân viên", new String[]{"Danh sách nhân viên", "Tài khoản nhân viên"},new String[] {"icon/office-man.png","icon/add-user.png"});
         addMenuItem(menuPanel, "Hóa đơn", new String[]{"Danh sách hóa đơn","Chi tiết hóa đơn"},new String[] {"icon/money.png","icon/detail.png"});
-        addMenuItem(menuPanel, "Thống kê", new String[]{"Doanh thu", "Số lượng khách đã đặt","Số lượng phòng đã được đặt"},new String[] {"icon/dashboard.png"});
+        addMenuItem(menuPanel, "Thống kê", new String[]{"Doanh thu", "Số lượng khách hàng đã đặt","Số lượng phòng đã được đặt"},new String[] {"icon/dashboard.png"});
 
         // Thêm menuPanel vào JFrame
         JScrollPane scrollPane = new JScrollPane(menuPanel);
@@ -108,13 +109,14 @@ public class gui_TrangChu extends JFrame {
         ImageIcon icon = getResizedIcon(path_icon, 24, 24); // Resize icon về 24x24
         mainButton.setIcon(icon);
         
-        Map<String, JPanel> panelMap = new HashMap<>();
-        panelMap.put("Sơ đồ phòng Khách sạn", new gui_SDKS(thongtin_nv));
-        panelMap.put("Phiếu đặt phòng", new gui_PhieuDatPhong());
-        panelMap.put("Khuyến mãi", new gui_KhuyenMai());
-        panelMap.put("Khách hàng", new gui_KhachHang());
-        if (panelMap.containsKey(title)) {
-            mainButton.addActionListener(e -> showPanel(panelMap.get(title)));
+        Map<String, Supplier<JPanel>> panelFactoryMap = new HashMap<>();
+        panelFactoryMap.put("Sơ đồ phòng Khách sạn", () -> new gui_SDKS(thongtin_nv));
+        panelFactoryMap.put("Phiếu đặt phòng", () -> new gui_PhieuDatPhong());
+        panelFactoryMap.put("Khuyến mãi", () -> new gui_KhuyenMai());
+        panelFactoryMap.put("Khách hàng", () -> new gui_KhachHang());
+
+        if (panelFactoryMap.containsKey(title)) {
+            mainButton.addActionListener(e -> showPanel(panelFactoryMap.get(title).get()));
         }
         parent.add(mainButton);
     }
@@ -167,21 +169,23 @@ public class gui_TrangChu extends JFrame {
             subMenuPanel.add(subButton);
             subButton.setBackground(Color.lightGray);
          // Sự kiện khi bấm vào menu
-            Map<String, JPanel> panelMap = new HashMap<>();
-            panelMap.put("Danh sách loại phòng", new gui_LoaiPhong());
-            panelMap.put("Danh sách phòng", new gui_Phong());
-            panelMap.put("Danh sách loại dịch vụ", new gui_LoaiDichVu());
-            panelMap.put("Danh sách dịch vụ", new gui_DichVu());
-            panelMap.put("Danh sách nhân viên", new gui_NhanVien());
-            panelMap.put("Tài khoản nhân viên", new gui_TaiKhoan());
-            panelMap.put("Danh sách hóa đơn", new gui_HoaDon());
-            panelMap.put("Chi tiết hóa đơn", new gui_ChiTietHoaDon());
-            panelMap.put("Doanh thu", new gui_DoanhThu());
-            panelMap.put("Số lượng khách hàng đã đặt", new gui_SoLuongKH());
-            panelMap.put("Số lượng phòng đã được đặt", new gui_SoLuongPhong());
-            if (panelMap.containsKey(item)) {
-                subButton.addActionListener(e -> showPanel(panelMap.get(item)));
-            }
+	         // Map chứa hàm tạo JPanel
+	            Map<String, Supplier<JPanel>> panelFactoryMap = new HashMap<>();
+	            panelFactoryMap.put("Danh sách loại phòng", () -> new gui_LoaiPhong());
+	            panelFactoryMap.put("Danh sách phòng", () -> new gui_Phong());
+	            panelFactoryMap.put("Danh sách loại dịch vụ", () -> new gui_LoaiDichVu());
+	            panelFactoryMap.put("Danh sách dịch vụ", () -> new gui_DichVu());
+	            panelFactoryMap.put("Danh sách nhân viên", () -> new gui_NhanVien());
+	            panelFactoryMap.put("Tài khoản nhân viên", () -> new gui_TaiKhoan());
+	            panelFactoryMap.put("Danh sách hóa đơn", () -> new gui_HoaDon());
+	            panelFactoryMap.put("Chi tiết hóa đơn", () -> new gui_ChiTietHoaDon());
+	            panelFactoryMap.put("Doanh thu", () -> new gui_DoanhThu());
+	            panelFactoryMap.put("Số lượng khách hàng đã đặt", () -> new gui_SoLuongKH());
+	            panelFactoryMap.put("Số lượng phòng đã được đặt", () -> new gui_SoLuongPhong());
+	
+	            if (panelFactoryMap.containsKey(item)) {
+	                subButton.addActionListener(e -> showPanel(panelFactoryMap.get(item).get()));
+	            }
         }
 
         // Lưu trạng thái submenu (ẩn/hiện)

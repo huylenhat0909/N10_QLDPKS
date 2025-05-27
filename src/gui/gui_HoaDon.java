@@ -10,10 +10,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -28,6 +30,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 
 import dao.DaoCTPhieuDP;
+import dao.DaoChiTietHoaDon;
 import dao.DaoHoaDon;
 import dao.DaoKhachHang;
 import dao.DaoNhanVien;
@@ -58,6 +61,11 @@ public class gui_HoaDon extends JPanel implements ActionListener {
 		private DaoKhachHang daoKH;
 		private DaoNhanVien daoNV;
 		private DaoHoaDon daohd;
+		private JTextField txttenKhachHangField;
+		private JTextField txttenKhuyenmai;
+		private JTextField txttenNhanVien;
+		private JTextField txtmaHD;
+		private JTextField txttongtien;
 
 	    public gui_HoaDon() {
 	    	daohd= new DaoHoaDon();
@@ -85,7 +93,7 @@ public class gui_HoaDon extends JPanel implements ActionListener {
 	        headerPanel.add(txtSearch);
 	        headerPanel.add(btnSearch);
 	        headerPanel.add(btnReset);
-	        headerPanel.add(btnDelete);
+	        //headerPanel.add(btnDelete);
 	        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 0));
 	        add(headerPanel,BorderLayout.NORTH);
 	        // Khởi tạo model cho bảng với các cột cần thiết
@@ -134,17 +142,27 @@ public class gui_HoaDon extends JPanel implements ActionListener {
 	     */
 	    private void openUpdateDialog(int row) {
 	        // Lấy thông tin hiện tại từ bảng
-	        String tenPhong = (String) tableModel.getValueAt(row, 0);
-	        String tenKhachHang = (String) tableModel.getValueAt(row, 1);
-	        String sdt = (String) tableModel.getValueAt(row, 2);
-	        String kieuThue = (String) tableModel.getValueAt(row, 3);
-	        
+	        String maHD = (String) tableModel.getValueAt(row, 0);
+	        String tenNhanVien = (String) tableModel.getValueAt(row, 1);
+	        String tenKhuyenMai = (String) tableModel.getValueAt(row, 2);
+	        String tenKhachHang = (String) tableModel.getValueAt(row, 3);
+	        DaoChiTietHoaDon daocthd= new DaoChiTietHoaDon();
+	        Double tongtien= daocthd.tinhTongtienPhongvaDichVu(maHD);
 	        // Tạo các trường nhập liệu với dữ liệu ban đầu
-	        tenPhongField = new JTextField(tenPhong);
-	        tenKhachHangField = new JTextField(tenKhachHang);
-	        sdtField = new JTextField(sdt);
-	        kieuThueField = new JTextField(kieuThue);
-	        
+	        txtmaHD = new JTextField(maHD);
+	        txtmaHD.setEditable(false);
+
+	        txttenKhachHangField = new JTextField(tenKhachHang);
+	        txttenKhachHangField.setEditable(false);
+
+	        txttenKhuyenmai = new JTextField(tenKhuyenMai);
+	        txttenKhuyenmai.setEditable(false);
+
+	        txttenNhanVien = new JTextField(tenNhanVien);
+	        txttenNhanVien.setEditable(false);
+
+	        txttongtien = new JTextField(formatCurrencyVND(tongtien));
+	        txttongtien.setEditable(false);
 	        // Dùng JFormattedTextField hay JTextField để nhập ngày giờ (ở đây dùng JTextField cho đơn giản)
 	        formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 	        ngayGioDat = LocalDateTime.now().format(formatter);
@@ -154,38 +172,25 @@ public class gui_HoaDon extends JPanel implements ActionListener {
 	        
 	        // Sắp xếp các trường nhập liệu trong một panel
 	        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
-	        panel.add(new JLabel("Tên phòng:"));
-	        panel.add(tenPhongField);
+	        panel.add(new JLabel("Mã hóa đơn:"));
+	        panel.add(txtmaHD);
+	        panel.add(new JLabel("Tên nhân viên:"));
+	        panel.add(txttenNhanVien);
 	        panel.add(new JLabel("Tên khách hàng:"));
-	        panel.add(tenKhachHangField);
-	        panel.add(new JLabel("SĐT:"));
-	        panel.add(sdtField);
-	        panel.add(new JLabel("Kiểu thuê:"));
-	        panel.add(kieuThueField);
+	        panel.add(txttenKhachHangField);
+	        panel.add(new JLabel("Tên khuyến mãi áp dụng:"));
+	        panel.add(txttenKhuyenmai);
 	        panel.add(new JLabel("Ngày giờ đặt (yyyy-MM-dd HH:mm):"));
 	        panel.add(ngayGioDatField);
 	        panel.add(new JLabel("Ngày giờ trả (yyyy-MM-dd HH:mm):"));
 	        panel.add(ngayGioTraField);
-	        
+	        panel.add(new JLabel("Tổng tiền hóa đơn"));
+	        panel.add(txttongtien);
 	        int result = JOptionPane.showConfirmDialog(
-	                this, panel, "Cập nhật thông tin đặt phòng",
+	                this, panel, "Thông tin của hóa đơn",
 	                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 	        
 	        if (result == JOptionPane.OK_OPTION) {
-	            // Cập nhật thông tin vào bảng
-	            tableModel.setValueAt(tenPhongField.getText(), row, 0);
-	            tableModel.setValueAt(tenKhachHangField.getText(), row, 1);
-	            tableModel.setValueAt(sdtField.getText(), row, 2);
-	            tableModel.setValueAt(kieuThueField.getText(), row, 3);
-	            
-	            // Ở ứng dụng thực tế, bạn có thể cập nhật thêm các thông tin ngày giờ đặt/trả vào cơ sở dữ liệu hoặc một model riêng.
-	            System.out.println("Cập nhật thành công:");
-	            System.out.println("Tên phòng: " + tenPhongField.getText());
-	            System.out.println("Tên khách hàng: " + tenKhachHangField.getText());
-	            System.out.println("SĐT: " + sdtField.getText());
-	            System.out.println("Kiểu thuê: " + kieuThueField.getText());
-	            System.out.println("Ngày giờ đặt: " + ngayGioDatField.getText());
-	            System.out.println("Ngày giờ trả: " + ngayGioTraField.getText());
 	        }
 	    }
 
@@ -270,4 +275,8 @@ public class gui_HoaDon extends JPanel implements ActionListener {
 		        originalData.add(row); // Lưu dữ liệu để reset/tìm kiếm
 		    }
 		}
+		private String formatCurrencyVND(double amount) {
+	        NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
+	        return formatter.format(amount) + " VND";
+	    }
 }

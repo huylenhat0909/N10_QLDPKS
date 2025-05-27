@@ -219,7 +219,7 @@ public class NhanPhongDialog extends JDialog {
                 	DaoChiTietHoaDon daocthd= new DaoChiTietHoaDon();
                 	List<HoaDon> dshd = daohd.getDatabase();
                 	String mahd = daohd.taomaHD(dshd);
-                	hd=new HoaDon(mahd, nhanVien, null, kh);
+                	hd=new HoaDon(mahd, nhanVien, null, ctpdp2.getPhietDP().getKhachhang());
                 	cthd= new ChiTietHoaDon(hd, phong,ctpdp2.getGioDatPhong(),false,"Rỗng",0, null);
                 	boolean themhd = daohd.themHoaDon(hd);
                     boolean themCThd = daocthd.themCTHoaDon(cthd);

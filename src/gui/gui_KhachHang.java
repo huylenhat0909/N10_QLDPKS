@@ -94,7 +94,7 @@ public class gui_KhachHang extends JPanel implements ActionListener {
 	        headerPanel.add(txtSearch);
 	        headerPanel.add(btnSearch);
 	        headerPanel.add(btnReset);
-	        headerPanel.add(btnDelete);
+	        //headerPanel.add(btnDelete);
 	        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 0));
 	        add(headerPanel,BorderLayout.NORTH);
 	        // Khởi tạo model cho bảng với các cột cần thiết
@@ -144,6 +144,7 @@ public class gui_KhachHang extends JPanel implements ActionListener {
 	     */
 	    private void openUpdateDialog(int row) {
 	        // Lấy thông tin hiện tại từ bảng
+	    	String makh=tableModel.getValueAt(row,0).toString();
 	        String tenLoaiPhong = (String) tableModel.getValueAt(row, 1);
 	        String moTa = (String) tableModel.getValueAt(row, 2);
 	        String giaphonggio = tableModel.getValueAt(row, 3).toString();
@@ -171,14 +172,46 @@ public class gui_KhachHang extends JPanel implements ActionListener {
 	                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 	        
 	        if (result == JOptionPane.OK_OPTION) {
-	            // Cập nhật thông tin vào bảng
-	            tableModel.setValueAt(tenPhongField.getText(), row, 0);
-	            tableModel.setValueAt(tenKhachHangField.getText(), row, 1);
-	            tableModel.setValueAt(sdtField.getText(), row, 2);
-	            tableModel.setValueAt(kieuThueField.getText(), row, 3);
-	            KhachHang kh= new KhachHang(giaphongngay, tenLoaiPhong, moTa, giaphonggio, giaphongngay);
-	            // Ở ứng dụng thực tế, bạn có thể cập nhật thêm các thông tin ngày giờ đặt/trả vào cơ sở dữ liệu hoặc một model riêng.
+	            // Lấy dữ liệu từ các ô nhập
+	            String tenKH = txttenLoaiPhong.getText().trim();
+	            String socccd = txtmota.getText().trim();
+	            String sodt = txtgiaphonggio.getText().trim();
+	            String email = txtgiaphongngay.getText().trim();
+
+	            // Kiểm tra dữ liệu đầu vào
+	            if (tenKH.isEmpty() || socccd.isEmpty() || sodt.isEmpty() || email.isEmpty()) {
+	                JOptionPane.showMessageDialog(null, "Không được để trống bất kỳ trường nào!");
+
+	            }
+	            
+	            if (tenKH.matches(".*\\d.*")) {
+	                JOptionPane.showMessageDialog(null, "Tên không được chứa ký tự số!");
+
+	            }
+
+	            if (!socccd.matches("\\d{1,12}")) {
+	                JOptionPane.showMessageDialog(null, "Số CCCD chỉ được chứa số và tối đa 12 ký tự!");
+
+	            }
+
+	            if (!sodt.matches("^(03|09)\\d{0,8}$")) {
+	                JOptionPane.showMessageDialog(null, "SDT phải bắt đầu bằng 03 hoặc 09 và tối đa 10 chữ số!");
+
+	            }
+
+	            if (!email.matches("^[\\w.+\\-]+@gmail\\.com$")) {
+	                JOptionPane.showMessageDialog(null, "Giá phòng ngày phải có định dạng @gmail.com!");
+
+	            }
+
+	            // Nếu dữ liệu hợp lệ thì cập nhật vào bảng và DB
+	            tableModel.setValueAt(tenKH, row, 1);
+	            tableModel.setValueAt(socccd, row, 2);
+	            tableModel.setValueAt(sodt, row, 3);
+	            tableModel.setValueAt(email, row, 4);
+	            KhachHang kh = new KhachHang(makh, tenKH, socccd, sodt, email);
 	            daokh.capnhatKhachHang(kh);
+	            JOptionPane.showMessageDialog(null, "Cập nhật khách hàng thành công");
 	        }
 	    }
 
@@ -263,14 +296,20 @@ public class gui_KhachHang extends JPanel implements ActionListener {
 			int selectedRow = table.getSelectedRow();
 
 		    if (selectedRow == -1) {
-		        JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng cần xóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+		        JOptionPane.showMessageDialog(this, "Vui lòng chọn khách hàng cần xóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
 		        return;
 		    }
 
-		    int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa dòng này?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
+		    int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa khách hàng này?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
 		    if (confirm == JOptionPane.YES_OPTION) {
 		        tableModel.removeRow(selectedRow);
-		        JOptionPane.showMessageDialog(this, "Đã xóa dòng thành công!");
+		        String makh= tableModel.getValueAt(selectedRow, 0).toString();
+		        if(daokh.xoaKhachHang(makh)) {
+		        	JOptionPane.showMessageDialog(this, "Đã xóa khách hàng thành công!");
+		        }else {
+		        	JOptionPane.showMessageDialog(this, "Xóa khách hàng không thành công!");
+		        }
+		        
 		    }
 		}
 
@@ -288,10 +327,13 @@ public class gui_KhachHang extends JPanel implements ActionListener {
 		private void timkiemPhong() {
 			// TODO Auto-generated method stub
 			 String searchTerm = txtSearch.getText().trim().toLowerCase();
-
+			 
 			    // Xóa toàn bộ bảng
 			    tableModel.setRowCount(0);
-
+			    if (searchTerm.matches(".*[a-zA-Z]+.*")) {
+			        JOptionPane.showMessageDialog(null, "Số điện thoại không được chứa chữ cái!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+	
+			    }
 			    if (searchTerm.isEmpty()) {
 			        // Hiện lại toàn bộ dữ liệu
 			        for (Object[] row : originalData) {
@@ -299,7 +341,7 @@ public class gui_KhachHang extends JPanel implements ActionListener {
 			        }
 			    } else {
 			        for (Object[] row : originalData) {
-			            String maPhieu = row[0].toString().toLowerCase(); // Cột "Mã phiếu đặt phòng"
+			            String maPhieu = row[3].toString().toLowerCase(); // Cột "Mã phiếu đặt phòng"
 			            if (maPhieu.contains(searchTerm)) {
 			                tableModel.addRow(row);
 			            }

@@ -89,7 +89,7 @@ public class gui_ChiTietHoaDon extends JPanel implements ActionListener {
 	        headerPanel.add(txtSearch);
 	        headerPanel.add(btnSearch);
 	        headerPanel.add(btnReset);
-	        headerPanel.add(btnDelete);
+	        //headerPanel.add(btnDelete);
 	        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 0));
 	        add(headerPanel,BorderLayout.NORTH);
 	        // Khởi tạo model cho bảng với các cột cần thiết
@@ -109,19 +109,6 @@ public class gui_ChiTietHoaDon extends JPanel implements ActionListener {
 	        table.getTableHeader().setBackground(new Color(180, 0, 0));
 	        table.getTableHeader().setForeground(Color.WHITE);
 	        table.setRowHeight(25);
-	        // Lắng nghe sự kiện nhấp chuột vào dòng (double click để mở dialog cập nhật)
-	        table.addMouseListener(new MouseAdapter() {
-	            @Override
-	            public void mouseClicked(MouseEvent e) {
-	                // Nếu nhấp đúp vào dòng
-	                if (e.getClickCount() == 2) {
-	                    int selectedRow = table.getSelectedRow();
-	                    if (selectedRow != -1) {
-	                        openUpdateDialog(selectedRow);
-	                    }
-	                }
-	            }
-	        });
 	        add(Box.createVerticalStrut(10), BorderLayout.CENTER); // thêm khoảng cách giữa header và bảng
 	        JScrollPane scrollPane = new JScrollPane(table);
 	        add(scrollPane,BorderLayout.CENTER);

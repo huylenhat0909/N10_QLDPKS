@@ -177,11 +177,11 @@ public class DatPhongDialog extends JDialog {
             dateTra.setEnabled(isTheoNgay);
             if ("Theo ngày".equals(kieu)) {
                 lblGiaPhong.setText(nf.format(
-                        phong.getGiaPhong() * phong.getLoaiPhong().getGiaPhongtheongay()
+                        Math.round( phong.getGiaPhong() * phong.getLoaiPhong().getGiaPhongtheongay())
                 ) + " VNĐ/ngày");
             } else {
                 lblGiaPhong.setText(nf.format(
-                        phong.getGiaPhong() * phong.getLoaiPhong().getGiaPhongtheogio()
+                        Math.round( phong.getGiaPhong() * phong.getLoaiPhong().getGiaPhongtheogio())
                 ) + " VNĐ/giờ");
             }
         });

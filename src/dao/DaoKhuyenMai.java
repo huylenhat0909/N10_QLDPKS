@@ -2,6 +2,7 @@ package dao;
 
 import java.awt.geom.Arc2D.Double;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -94,5 +95,74 @@ public class DaoKhuyenMai {
 			e.printStackTrace();
 		}
 		return khuyenmai;
+	}
+	public boolean capNhatKhuyenMai(KhuyenMai km) {
+	    int n = 0;
+	    try {
+	        ConnectDB.getInstance().connect();
+	        Connection con = ConnectDB.getConnection();
+	        String sql = "UPDATE KhuyenMai SET moTa = ?, ngayApDung = ?, ngayHetHan = ?, tienApDungKM = ?, phanTramKM = ? WHERE maKM = ?";
+	        PreparedStatement statement = con.prepareStatement(sql);
+	        statement.setString(1, km.getTenKM());
+	        statement.setTimestamp(2, Timestamp.valueOf(km.getNgayApDung()));
+	        statement.setTimestamp(3, Timestamp.valueOf(km.getNgayHetHan()));
+	        statement.setDouble(4, km.getTienApdungKM());
+	        statement.setDouble(5, km.getPhanTramKM());
+	        statement.setString(6, km.getMaKM());
+	        n = statement.executeUpdate();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return n > 0;
+	}
+	
+	
+	
+	public boolean xoaKhuyenMai(String maKM) {
+	    int n = 0;
+	    try {
+	        ConnectDB.getInstance().connect();
+	        Connection con = ConnectDB.getConnection();
+	        String sql = "DELETE FROM KhuyenMai WHERE maKM = ?";
+	        PreparedStatement statement = con.prepareStatement(sql);
+	        statement.setString(1, maKM);
+	        n = statement.executeUpdate();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return n > 0;
+	}
+	public boolean themKhuyenMai(KhuyenMai km) {
+	    int n = 0;
+	    try {
+	        ConnectDB.getInstance().connect();
+	        Connection con = ConnectDB.getConnection();
+	        String sql = "INSERT INTO KhuyenMai([maKM], [moTa], [ngayApDung], [ngayHetHan], [tienApDungKM], [phanTramKM]) VALUES (?, ?, ?, ?, ?, ?)";
+	        PreparedStatement statement = con.prepareStatement(sql);
+	        statement.setString(1, km.getMaKM());
+	        statement.setString(2, km.getTenKM());
+	        statement.setTimestamp(3, Timestamp.valueOf(km.getNgayApDung()));
+	        statement.setTimestamp(4, Timestamp.valueOf(km.getNgayHetHan()));
+	        statement.setDouble(5, km.getTienApdungKM());
+	        statement.setDouble(6, km.getPhanTramKM());
+	        n = statement.executeUpdate();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return n > 0;
+	}
+	public static String taomaDV(List<KhuyenMai> dskm) {
+        //return String.format("NV%03d", count);
+		ArrayList<String> dsma = new ArrayList<String>();
+		for (KhuyenMai km: dskm) {
+			dsma.add(km.getMaKM());
+		}
+		String newID;
+        int count = dsma.size() + 1;
+		do {
+			newID=String.format("MKM%03d",count );
+			count++;
+		}while(dsma.contains(newID));
+		return newID;
 	}
 }

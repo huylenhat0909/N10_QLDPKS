@@ -205,7 +205,6 @@ public class DaoCTPhieuDP {
 				daopdp=new DaoPhieuDP();
 				pdp=daopdp.getPDPtheoMa(maPhieuDatPhong);
 				ctpdp=new ChiTietPhieuDatPhong(pdp, phong, gionhanphong, giotraphong, kieuThue);
-				
 			}
 			rs.close();
 			ps.close();
@@ -231,8 +230,8 @@ public class DaoCTPhieuDP {
 	        Connection con = ConnectDB.getConnection();
 
 	        String sql = "SELECT COUNT(*) AS soLuongChuaLapHoaDon " +
-	                     "FROM CTPhieuDatPhong ctpdp JOIN Phong p ON ctpdp.maPhong = p.maPhong LEFT JOIN ChiTietHoaDon cthd ON ctpdp.maPhong = cthd.maPhong " +
-	                     "WHERE cthd.maPhong IS NULL and ctpdp.kieuThue='1'";
+	                     "FROM CTPhieuDatPhong ctpdp " +
+	                     "WHERE ctpdp.kieuThue='1'";
 
 	        PreparedStatement ps = con.prepareStatement(sql);
 	        ResultSet rs = ps.executeQuery();

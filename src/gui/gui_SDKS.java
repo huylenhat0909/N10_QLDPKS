@@ -196,10 +196,10 @@ public class gui_SDKS extends JPanel {
         List<Phong> danhSachPhong = daoPhong.getDatabase(); // hoặc getAllPhong()
         DaoChiTietHoaDon daocthd= new DaoChiTietHoaDon();
         DaoCTPhieuDP daoctpdp= new DaoCTPhieuDP();
-        int soPhongTrong =danhSachPhong.size()-daocthd.sluonghdchuathanhtoan();
+        
         int soPhongDat = daoctpdp.sluongctpdpchuacocthd();
         int soPhongSuDung = daocthd.sluonghdchuathanhtoan();
-
+        int soPhongTrong =danhSachPhong.size()-soPhongDat-soPhongSuDung;
         countLabel.setText("Trống: " + soPhongTrong
                 + ", Đã đặt: " + soPhongDat
                 + ", Đang sử dụng: " + soPhongSuDung);
@@ -225,18 +225,13 @@ public class gui_SDKS extends JPanel {
 		@Override
         public void actionPerformed(ActionEvent e) {
             JButton clickedButton = (JButton) e.getSource();
-			LocalDateTime giohientai = LocalDateTime.now();
-			Date date = dateChooser.getDate();
-			//Set ngày giờ trên datachoose
-			LocalDateTime giotrendatechooser = date.toInstant()
-			        .atZone(ZoneId.systemDefault())
-			        .toLocalDate()
-			        .atTime(LocalTime.now()); 
+			
 			
             String maPhong = (String) clickedButton.getClientProperty("maPhong");
             String tenPhong = (String) clickedButton.getClientProperty("tenPhong");
             phong=daophong.getPhongtheoTen(tenPhong);
             daocthd= new DaoChiTietHoaDon();
+            LocalDateTime giohientai = LocalDateTime.now();
             ChiTietHoaDon cthd = daocthd.getCTHDtheophongtt(maPhong,false);
             ChiTietPhieuDatPhong ctpdp= daoctpd.getCTPDPtheoMaPhongDay(maPhong, giohientai.toLocalDate());
             boolean coCTHD = (cthd != null && cthd.getHD() != null && cthd.getNgayLapHD() != null);
@@ -249,30 +244,46 @@ public class gui_SDKS extends JPanel {
 			 * ("Trống".equals(phong.getTrangThai())) { DatPhongDialog dialog = new
 			 * DatPhongDialog(null, phong,nv ); dialog.setVisible(true);
 			 * capNhatTrangThaiPhong(); } if ("Đã đặt".equals(phong.getTrangThai())) { Date
-			 * date1 = dateChooser.getDate(); LocalDate selectedDate =
-			 * date1.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 			 * NhanPhongDialog dialog = new NhanPhongDialog(null, phong,nv, selectedDate );
 			 * dialog.setVisible(true); capNhatTrangThaiPhong(); }
 			 */
-            if (coCTHD) {
-            	LocalDateTime gioTruaNgayHomSau = cthd.getNgayLapHD().toLocalDate().plusDays(1).atTime(14, 0);
-                LocalDateTime thoiGianLap = cthd.getNgayLapHD();
-                if ((giohientai.isEqual(thoiGianLap) || giohientai.isAfter(thoiGianLap))&& giohientai.isBefore(gioTruaNgayHomSau)) {
-                    // Hiện đang sử dụng → Thanh toán
-                    ThanhToanDialog dialog = new ThanhToanDialog(null, maPhong,
-                            cthd.getHD().getKhachHang().getSoDT(),
-                            cthd.getHD().getMaHD());
-                    dialog.setVisible(true);
-                    capNhatTrangThaiPhong();
-                    return;
-                }else {
-                	DatPhongDialog dialog = new DatPhongDialog(null, phong, nv,giotrendatechooser );
-                    dialog.setVisible(true);
-                    capNhatTrangThaiPhong();
-                    return;
-                }
-                
-            }
+            
+			Date date = dateChooser.getDate();
+			//Set ngày giờ trên datachoose
+			LocalDateTime giotrendatechooser = date.toInstant()
+			        .atZone(ZoneId.systemDefault())
+			        .toLocalDate()
+			        .atTime(LocalTime.now()); 
+			LocalDate selectedDateLD = giotrendatechooser.toLocalDate();
+			LocalDate homNay = LocalDate.now();
+
+			boolean laHomNay = selectedDateLD.isEqual(homNay);
+			if (coCTHD) {
+			    LocalDateTime thoiGianLap = cthd.getNgayLapHD();
+			    LocalDate ngayLapHD = thoiGianLap.toLocalDate();
+			    LocalDate ngayHienTai = LocalDate.now();
+
+			    // Nếu đang sử dụng hôm nay và chọn ngày hôm nay → Thanh toán
+			    if (ngayLapHD.isEqual(ngayHienTai) && selectedDateLD.isEqual(ngayHienTai)) {
+			    	LocalDateTime giotrendatechooser1 = date.toInstant()
+					        .atZone(ZoneId.systemDefault())
+					        .toLocalDate()
+					        .atTime(14,1); 
+			        ThanhToanDialog dialog = new ThanhToanDialog(null, maPhong,
+			                cthd.getHD().getKhachHang().getSoDT(),
+			                cthd.getHD().getMaHD(),
+			        		giotrendatechooser);
+			        dialog.setVisible(true);
+			        capNhatTrangThaiPhong();
+			        return;
+			    } else {
+			        // Nếu người dùng chọn ngày khác hôm nay, vẫn cho đặt
+			        DatPhongDialog dialog = new DatPhongDialog(null, phong, nv, giotrendatechooser);
+			        dialog.setVisible(true);
+			        capNhatTrangThaiPhong();
+			        return;
+			    }
+			}
 
             if (!coCTHD && coCTPDP) {
                 LocalDateTime ngayNhan = ctpdp.getGioDatPhong();

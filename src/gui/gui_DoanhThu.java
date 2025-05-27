@@ -8,6 +8,7 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.FileOutputStream;
 import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,6 +20,11 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.poi.sl.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import javax.swing.JFileChooser;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -53,7 +59,7 @@ public class gui_DoanhThu extends JPanel {
     	infoPanel.setBorder(BorderFactory.createTitledBorder("Tổng Doanh Thu"));
     	NumberFormat nf = NumberFormat.getInstance(new Locale("vi", "VN"));
     	nf.setMaximumFractionDigits(0); // Không có phần thập phân
-    	nf.setRoundingMode(RoundingMode.HALF_UP);
+    	nf.setRoundingMode(RoundingMode.HALF_UP);	
     	// Format hiển thị số tiền (theo triệu VNĐ, làm tròn 2 chữ số)
     	String tongStr = String.format("Tổng:" +nf.format(tongTatCa) +" VNĐ");
     	String dvStr = String.format("Dịch vụ:" + nf.format(tongdv)+" VNĐ" );
@@ -309,6 +315,7 @@ public class gui_DoanhThu extends JPanel {
 	    }
     	return result;
     }
+   
     // Hàm main để chạy thử giao diện
     public static void main(String[] args) {
         JFrame frame = new JFrame("Thống kê Doanh Thu");

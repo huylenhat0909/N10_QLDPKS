@@ -73,9 +73,9 @@ public class ChiTietPhieuDatPhong {
 	}
 	public void setGiaPhongtheoKieuThue() {
 		if(kieuThue) {
-			this.giaPhongtheoKieuThue=phong.getGiaPhong()*phong.getLoaiPhong().getGiaPhongtheongay();
+			this.giaPhongtheoKieuThue=(double) Math.round(phong.getGiaPhong()*phong.getLoaiPhong().getGiaPhongtheongay());
 		}else {
-			this.giaPhongtheoKieuThue=phong.getGiaPhong()*phong.getLoaiPhong().getGiaPhongtheogio();
+			this.giaPhongtheoKieuThue= (double) Math.round(phong.getGiaPhong()*phong.getLoaiPhong().getGiaPhongtheogio());
 		}
 	}
 	
